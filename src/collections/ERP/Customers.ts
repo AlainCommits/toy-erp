@@ -1,6 +1,6 @@
 import type { CollectionConfig } from 'payload'
 import { authenticated } from '../../access/authenticated'
-import { generateCustomerNumber } from './Customers/hooks'
+import { generateCustomerNumber, assignOrders } from './Customers/hooks'
 
 export const Customers: CollectionConfig = {
   slug: 'customers',
@@ -252,6 +252,9 @@ export const Customers: CollectionConfig = {
   hooks: {
     beforeChange: [
       generateCustomerNumber,
+    ],
+    afterChange: [
+      assignOrders,
     ],
   },
   timestamps: true,
