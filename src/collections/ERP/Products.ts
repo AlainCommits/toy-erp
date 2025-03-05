@@ -1,6 +1,6 @@
 import type { CollectionConfig } from 'payload'
-import { authenticated } from '@/access/authenticated'
-import { generateArticleNumber, syncProductPrice } from './hooks'
+import { authenticated } from '../../access/authenticated'
+import { generateArticleNumber, syncProductPrice } from './Products/hooks'
 
 export const Products: CollectionConfig = {
   slug: 'products',
@@ -17,7 +17,7 @@ export const Products: CollectionConfig = {
   admin: {
     group: 'ERP',
     useAsTitle: 'name',
-    defaultColumns: ['name', 'sku', 'price', 'inStock'],
+    defaultColumns: ['name', 'sku', 'price', 'stockQuantity'],
   },
   fields: [
     {
@@ -139,11 +139,20 @@ export const Products: CollectionConfig = {
       },
     },
     {
-      name: 'inStock',
-      type: 'checkbox',
+      name: 'stockQuantity',
+      type: 'number',
+      required: true,
+      defaultValue: 0,
+      min: 0,
       label: {
-        de: 'Auf Lager',
-        en: 'In Stock',
+        de: 'Lagerbestand',
+        en: 'Stock Quantity',
+      },
+      admin: {
+        description: {
+          de: 'Aktuelle Menge auf Lager',
+          en: 'Current quantity in stock',
+        },
       },
     },
     {
