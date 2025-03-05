@@ -763,6 +763,7 @@ export interface Product {
   id: string;
   name: string;
   description?: string | null;
+  stockQuantity: number | null;
   /**
    * Supplier from whom this product is sourced
    */
