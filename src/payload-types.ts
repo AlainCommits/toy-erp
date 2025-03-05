@@ -71,6 +71,21 @@ export interface Config {
     media: Media;
     categories: Category;
     users: User;
+    products: Product;
+    suppliers: Supplier;
+    customers: Customer;
+    orders: Order;
+    inventory: Inventory;
+    purchases: Purchase;
+    invoices: Invoice;
+    payments: Payment;
+    warehouses: Warehouse;
+    shippingMethods: ShippingMethod;
+    taxRates: TaxRate;
+    reports: Report;
+    documents: Document;
+    integrations: Integration;
+    auditLogs: AuditLog;
     redirects: Redirect;
     forms: Form;
     'form-submissions': FormSubmission;
@@ -87,6 +102,21 @@ export interface Config {
     media: MediaSelect<false> | MediaSelect<true>;
     categories: CategoriesSelect<false> | CategoriesSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
+    products: ProductsSelect<false> | ProductsSelect<true>;
+    suppliers: SuppliersSelect<false> | SuppliersSelect<true>;
+    customers: CustomersSelect<false> | CustomersSelect<true>;
+    orders: OrdersSelect<false> | OrdersSelect<true>;
+    inventory: InventorySelect<false> | InventorySelect<true>;
+    purchases: PurchasesSelect<false> | PurchasesSelect<true>;
+    invoices: InvoicesSelect<false> | InvoicesSelect<true>;
+    payments: PaymentsSelect<false> | PaymentsSelect<true>;
+    warehouses: WarehousesSelect<false> | WarehousesSelect<true>;
+    shippingMethods: ShippingMethodsSelect<false> | ShippingMethodsSelect<true>;
+    taxRates: TaxRatesSelect<false> | TaxRatesSelect<true>;
+    reports: ReportsSelect<false> | ReportsSelect<true>;
+    documents: DocumentsSelect<false> | DocumentsSelect<true>;
+    integrations: IntegrationsSelect<false> | IntegrationsSelect<true>;
+    auditLogs: AuditLogsSelect<false> | AuditLogsSelect<true>;
     redirects: RedirectsSelect<false> | RedirectsSelect<true>;
     forms: FormsSelect<false> | FormsSelect<true>;
     'form-submissions': FormSubmissionsSelect<false> | FormSubmissionsSelect<true>;
@@ -727,6 +757,628 @@ export interface Form {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "products".
+ */
+export interface Product {
+  id: string;
+  name: string;
+  description?: string | null;
+  /**
+   * Supplier from whom this product is sourced
+   */
+  supplier?: (string | null) | Supplier;
+  categories?:
+    | {
+        category: string;
+        id?: string | null;
+      }[]
+    | null;
+  tags?:
+    | {
+        tag: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Stock Keeping Unit - unique identifier
+   */
+  sku: string;
+  barcode?: string | null;
+  price: number;
+  /**
+   * Price at which the product is purchased from supplier
+   */
+  costPrice?: number | null;
+  inStock?: boolean | null;
+  minStockLevel?: number | null;
+  dimensions?: {
+    length?: number | null;
+    width?: number | null;
+    height?: number | null;
+    weight?: number | null;
+  };
+  /**
+   * Applicable tax rate for this product
+   */
+  taxRate?: (string | null) | TaxRate;
+  images?:
+    | {
+        image: string | Media;
+        altText?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "suppliers".
+ */
+export interface Supplier {
+  id: string;
+  name: string;
+  contactPerson?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  website?: string | null;
+  taxId?: string | null;
+  vatId?: string | null;
+  /**
+   * e.g. Net 30 days
+   */
+  paymentTerms?: string | null;
+  notes?: string | null;
+  /**
+   * Products sourced from this supplier
+   */
+  products?: (string | Product)[] | null;
+  pricingTerms?: string | null;
+  contractInfo?: {
+    contractNumber?: string | null;
+    startDate?: string | null;
+    endDate?: string | null;
+    autoRenew?: boolean | null;
+    contractDocument?: (string | null) | Document;
+  };
+  address?: {
+    street?: string | null;
+    zipCode?: string | null;
+    city?: string | null;
+    country?: string | null;
+  };
+  bankInfo?: {
+    accountHolder?: string | null;
+    iban?: string | null;
+    bic?: string | null;
+    bankName?: string | null;
+  };
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "documents".
+ */
+export interface Document {
+  id: string;
+  title: string;
+  documentType: 'invoice' | 'deliveryNote' | 'order' | 'receipt' | 'contract' | 'taxDocument' | 'report' | 'other';
+  description?: string | null;
+  relatedEntity?:
+    | ({
+        relationTo: 'orders';
+        value: string | Order;
+      } | null)
+    | ({
+        relationTo: 'customers';
+        value: string | Customer;
+      } | null)
+    | ({
+        relationTo: 'suppliers';
+        value: string | Supplier;
+      } | null)
+    | ({
+        relationTo: 'purchases';
+        value: string | Purchase;
+      } | null)
+    | ({
+        relationTo: 'invoices';
+        value: string | Invoice;
+      } | null)
+    | ({
+        relationTo: 'products';
+        value: string | Product;
+      } | null)
+    | ({
+        relationTo: 'users';
+        value: string | User;
+      } | null);
+  createdBy?: (string | null) | User;
+  tags?:
+    | {
+        tag?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  isPublic?: boolean | null;
+  expiryDate?: string | null;
+  notes?: string | null;
+  updatedAt: string;
+  createdAt: string;
+  url?: string | null;
+  thumbnailURL?: string | null;
+  filename?: string | null;
+  mimeType?: string | null;
+  filesize?: number | null;
+  width?: number | null;
+  height?: number | null;
+  focalX?: number | null;
+  focalY?: number | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "orders".
+ */
+export interface Order {
+  id: string;
+  orderNumber: string;
+  orderDate: string;
+  status: 'new' | 'processing' | 'shipped' | 'completed' | 'cancelled' | 'refunded';
+  orderType: 'online' | 'instore' | 'phone';
+  customer: string | Customer;
+  orderItems?:
+    | {
+        product: string | Product;
+        quantity: number;
+        unitPrice: number;
+        discount?: number | null;
+        id?: string | null;
+      }[]
+    | null;
+  shippingAddress?: {
+    street?: string | null;
+    zipCode?: string | null;
+    city?: string | null;
+    country?: string | null;
+  };
+  billingAddress?: {
+    sameAsShipping?: boolean | null;
+    street?: string | null;
+    zipCode?: string | null;
+    city?: string | null;
+    country?: string | null;
+  };
+  shippingMethod?: (string | null) | ShippingMethod;
+  paymentMethod?: string | null;
+  subtotal?: number | null;
+  taxAmount?: number | null;
+  shippingCost?: number | null;
+  discount?: number | null;
+  total: number;
+  notes?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "customers".
+ */
+export interface Customer {
+  id: string;
+  name: string;
+  customerNumber: string;
+  contactPerson?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  customerType?: ('retail' | 'wholesale' | 'business') | null;
+  taxId?: string | null;
+  vatId?: string | null;
+  paymentTerms?: string | null;
+  notes?: string | null;
+  orders?: (string | Order)[] | null;
+  invoices?: (string | Invoice)[] | null;
+  billingAddress?: {
+    street?: string | null;
+    zipCode?: string | null;
+    city?: string | null;
+    country?: string | null;
+  };
+  shippingAddress?: {
+    sameAsBilling?: boolean | null;
+    street?: string | null;
+    zipCode?: string | null;
+    city?: string | null;
+    country?: string | null;
+  };
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "invoices".
+ */
+export interface Invoice {
+  id: string;
+  invoiceNumber: string;
+  invoiceDate: string;
+  dueDate: string;
+  status: 'unpaid' | 'partiallyPaid' | 'paid' | 'overdue' | 'cancelled';
+  order?: (string | null) | Order;
+  customer?: (string | null) | Customer;
+  customerInfo: {
+    customerNumber?: string | null;
+    name: string;
+    email?: string | null;
+    phone?: string | null;
+    taxId?: string | null;
+    vatId?: string | null;
+  };
+  billingAddress?: {
+    street?: string | null;
+    zipCode?: string | null;
+    city?: string | null;
+    country?: string | null;
+  };
+  paymentTerms?: string | null;
+  paymentMethod?: string | null;
+  subtotal?: number | null;
+  taxAmount?: number | null;
+  shippingCost?: number | null;
+  discount?: number | null;
+  total: number;
+  notes?: string | null;
+  issuedBy?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "shippingMethods".
+ */
+export interface ShippingMethod {
+  id: string;
+  name: string;
+  carrier?: string | null;
+  description?: string | null;
+  price: number;
+  estimatedDeliveryDays?: {
+    min?: number | null;
+    max?: number | null;
+  };
+  isActive?: boolean | null;
+  isDefault?: boolean | null;
+  trackingAvailable?: boolean | null;
+  /**
+   * URL format with {tracking_number} as placeholder
+   */
+  trackingUrlFormat?: string | null;
+  restrictions?: {
+    minWeight?: number | null;
+    maxWeight?: number | null;
+    minOrderAmount?: number | null;
+    countries?:
+      | {
+          country: string;
+          id?: string | null;
+        }[]
+      | null;
+  };
+  notes?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "purchases".
+ */
+export interface Purchase {
+  id: string;
+  purchaseNumber: string;
+  orderDate: string;
+  expectedDeliveryDate?: string | null;
+  actualDeliveryDate?: string | null;
+  status: 'ordered' | 'partiallyDelivered' | 'delivered' | 'completed' | 'cancelled';
+  supplier: string | Supplier;
+  supplierInfo: {
+    name: string;
+    contactPerson?: string | null;
+    email?: string | null;
+    phone?: string | null;
+  };
+  purchaseItems?:
+    | {
+        product: string | Product;
+        quantity: number;
+        unitPrice: number;
+        discount?: number | null;
+        id?: string | null;
+      }[]
+    | null;
+  paymentInfo?: {
+    paymentTerms?: string | null;
+    paymentMethod?: string | null;
+    paymentStatus?: ('pending' | 'partiallyPaid' | 'paid' | 'overdue') | null;
+    dueDate?: string | null;
+  };
+  subtotal?: number | null;
+  taxAmount?: number | null;
+  shippingCost?: number | null;
+  discount?: number | null;
+  total: number;
+  notes?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "taxRates".
+ */
+export interface TaxRate {
+  id: string;
+  name: string;
+  rate: number;
+  description?: string | null;
+  isActive?: boolean | null;
+  region?: string | null;
+  isDefault?: boolean | null;
+  category?: ('standard' | 'reduced' | 'zero' | 'exempt') | null;
+  effectiveFrom?: string | null;
+  effectiveTo?: string | null;
+  notes?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "inventory".
+ */
+export interface Inventory {
+  id: string;
+  inventoryId: string;
+  product: string | Product;
+  quantity: number;
+  /**
+   * Quantity that is not reserved
+   */
+  availableQuantity?: number | null;
+  /**
+   * Quantity that is reserved for orders
+   */
+  reservedQuantity?: number | null;
+  location?: string | null;
+  warehouse?: (string | null) | Warehouse;
+  section?: string | null;
+  shelf?: string | null;
+  bin?: string | null;
+  minStockLevel?: number | null;
+  reorderPoint?: number | null;
+  reorderQuantity?: number | null;
+  lastStockTake?: string | null;
+  status?: ('sufficient' | 'low' | 'critical' | 'outOfStock' | 'onOrder') | null;
+  notes?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "warehouses".
+ */
+export interface Warehouse {
+  id: string;
+  name: string;
+  code: string;
+  description?: string | null;
+  isActive?: boolean | null;
+  address?: {
+    street?: string | null;
+    zipCode?: string | null;
+    city?: string | null;
+    country?: string | null;
+  };
+  contact?: {
+    name?: string | null;
+    phone?: string | null;
+    email?: string | null;
+  };
+  size?: number | null;
+  /**
+   * Maximum capacity (pallet spaces or similar)
+   */
+  capacity?: number | null;
+  currentUsage?: number | null;
+  sections?:
+    | {
+        name: string;
+        code: string;
+        description?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  notes?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "payments".
+ */
+export interface Payment {
+  id: string;
+  paymentNumber: string;
+  paymentDate: string;
+  invoice: string | Invoice;
+  invoiceInfo?: {
+    invoiceNumber?: string | null;
+    invoiceDate?: string | null;
+  };
+  amount: number;
+  paymentMethod: 'cash' | 'creditCard' | 'bankTransfer' | 'paypal' | 'directDebit' | 'check';
+  status: 'completed' | 'processing' | 'failed' | 'refunded';
+  customer?: (string | null) | Customer;
+  customerInfo?: {
+    customerNumber?: string | null;
+    name?: string | null;
+  };
+  paymentReference?: string | null;
+  transactionId?: string | null;
+  notes?: string | null;
+  processedBy?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "reports".
+ */
+export interface Report {
+  id: string;
+  title: string;
+  reportType: 'sales' | 'inventory' | 'financial' | 'customer' | 'supplier' | 'custom';
+  description?: string | null;
+  /**
+   * Parameters for the report in JSON format
+   */
+  parameters?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  dateRange?: {
+    startDate?: string | null;
+    endDate?: string | null;
+  };
+  /**
+   * Generated report data in JSON format
+   */
+  results?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  createdBy?: (string | null) | User;
+  notes?: string | null;
+  isScheduled?: boolean | null;
+  schedule?: {
+    frequency?: ('daily' | 'weekly' | 'monthly' | 'quarterly') | null;
+    nextRunDate?: string | null;
+  };
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "integrations".
+ */
+export interface Integration {
+  id: string;
+  name: string;
+  integrationType: 'elster' | 'accounting' | 'payment' | 'shipping' | 'email' | 'crm' | 'marketplace' | 'custom';
+  description?: string | null;
+  connectionDetails?: {
+    apiUrl?: string | null;
+    authType?: ('apiKey' | 'oauth' | 'basic' | 'token') | null;
+    /**
+     * All credentials are stored encrypted
+     */
+    credentials?:
+      | {
+          [k: string]: unknown;
+        }
+      | unknown[]
+      | string
+      | number
+      | boolean
+      | null;
+  };
+  status: 'active' | 'inactive' | 'failed' | 'maintenance';
+  lastSyncAt?: string | null;
+  syncFrequency?: ('manual' | 'hourly' | 'daily' | 'weekly') | null;
+  nextSyncAt?: string | null;
+  /**
+   * Configuration for mapping fields between systems
+   */
+  mappings?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  errorLog?:
+    | {
+        timestamp?: string | null;
+        errorMessage?: string | null;
+        details?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  notes?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Logs all changes within the system for audit purposes
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "auditLogs".
+ */
+export interface AuditLog {
+  id: string;
+  user: string | User;
+  action:
+    | 'create'
+    | 'update'
+    | 'delete'
+    | 'login'
+    | 'logout'
+    | 'export'
+    | 'import'
+    | 'changePermission'
+    | 'processPayment'
+    | 'other';
+  /**
+   * The type of entity that was changed (e.g. product, order)
+   */
+  entityType: string;
+  /**
+   * The ID of the affected entity
+   */
+  entityId?: string | null;
+  /**
+   * Additional information about the action
+   */
+  details?: string | null;
+  /**
+   * Stores the exact changes (before/after)
+   */
+  changes?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  ipAddress?: string | null;
+  userAgent?: string | null;
+  status?: ('success' | 'failed' | 'warning') | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "redirects".
  */
 export interface Redirect {
@@ -916,6 +1568,66 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'users';
         value: string | User;
+      } | null)
+    | ({
+        relationTo: 'products';
+        value: string | Product;
+      } | null)
+    | ({
+        relationTo: 'suppliers';
+        value: string | Supplier;
+      } | null)
+    | ({
+        relationTo: 'customers';
+        value: string | Customer;
+      } | null)
+    | ({
+        relationTo: 'orders';
+        value: string | Order;
+      } | null)
+    | ({
+        relationTo: 'inventory';
+        value: string | Inventory;
+      } | null)
+    | ({
+        relationTo: 'purchases';
+        value: string | Purchase;
+      } | null)
+    | ({
+        relationTo: 'invoices';
+        value: string | Invoice;
+      } | null)
+    | ({
+        relationTo: 'payments';
+        value: string | Payment;
+      } | null)
+    | ({
+        relationTo: 'warehouses';
+        value: string | Warehouse;
+      } | null)
+    | ({
+        relationTo: 'shippingMethods';
+        value: string | ShippingMethod;
+      } | null)
+    | ({
+        relationTo: 'taxRates';
+        value: string | TaxRate;
+      } | null)
+    | ({
+        relationTo: 'reports';
+        value: string | Report;
+      } | null)
+    | ({
+        relationTo: 'documents';
+        value: string | Document;
+      } | null)
+    | ({
+        relationTo: 'integrations';
+        value: string | Integration;
+      } | null)
+    | ({
+        relationTo: 'auditLogs';
+        value: string | AuditLog;
       } | null)
     | ({
         relationTo: 'redirects';
@@ -1273,6 +1985,521 @@ export interface UsersSelect<T extends boolean = true> {
   hash?: T;
   loginAttempts?: T;
   lockUntil?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "products_select".
+ */
+export interface ProductsSelect<T extends boolean = true> {
+  name?: T;
+  description?: T;
+  supplier?: T;
+  categories?:
+    | T
+    | {
+        category?: T;
+        id?: T;
+      };
+  tags?:
+    | T
+    | {
+        tag?: T;
+        id?: T;
+      };
+  sku?: T;
+  barcode?: T;
+  price?: T;
+  costPrice?: T;
+  inStock?: T;
+  minStockLevel?: T;
+  dimensions?:
+    | T
+    | {
+        length?: T;
+        width?: T;
+        height?: T;
+        weight?: T;
+      };
+  taxRate?: T;
+  images?:
+    | T
+    | {
+        image?: T;
+        altText?: T;
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "suppliers_select".
+ */
+export interface SuppliersSelect<T extends boolean = true> {
+  name?: T;
+  contactPerson?: T;
+  email?: T;
+  phone?: T;
+  website?: T;
+  taxId?: T;
+  vatId?: T;
+  paymentTerms?: T;
+  notes?: T;
+  products?: T;
+  pricingTerms?: T;
+  contractInfo?:
+    | T
+    | {
+        contractNumber?: T;
+        startDate?: T;
+        endDate?: T;
+        autoRenew?: T;
+        contractDocument?: T;
+      };
+  address?:
+    | T
+    | {
+        street?: T;
+        zipCode?: T;
+        city?: T;
+        country?: T;
+      };
+  bankInfo?:
+    | T
+    | {
+        accountHolder?: T;
+        iban?: T;
+        bic?: T;
+        bankName?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "customers_select".
+ */
+export interface CustomersSelect<T extends boolean = true> {
+  name?: T;
+  customerNumber?: T;
+  contactPerson?: T;
+  email?: T;
+  phone?: T;
+  customerType?: T;
+  taxId?: T;
+  vatId?: T;
+  paymentTerms?: T;
+  notes?: T;
+  orders?: T;
+  invoices?: T;
+  billingAddress?:
+    | T
+    | {
+        street?: T;
+        zipCode?: T;
+        city?: T;
+        country?: T;
+      };
+  shippingAddress?:
+    | T
+    | {
+        sameAsBilling?: T;
+        street?: T;
+        zipCode?: T;
+        city?: T;
+        country?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "orders_select".
+ */
+export interface OrdersSelect<T extends boolean = true> {
+  orderNumber?: T;
+  orderDate?: T;
+  status?: T;
+  orderType?: T;
+  customer?: T;
+  orderItems?:
+    | T
+    | {
+        product?: T;
+        quantity?: T;
+        unitPrice?: T;
+        discount?: T;
+        id?: T;
+      };
+  shippingAddress?:
+    | T
+    | {
+        street?: T;
+        zipCode?: T;
+        city?: T;
+        country?: T;
+      };
+  billingAddress?:
+    | T
+    | {
+        sameAsShipping?: T;
+        street?: T;
+        zipCode?: T;
+        city?: T;
+        country?: T;
+      };
+  shippingMethod?: T;
+  paymentMethod?: T;
+  subtotal?: T;
+  taxAmount?: T;
+  shippingCost?: T;
+  discount?: T;
+  total?: T;
+  notes?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "inventory_select".
+ */
+export interface InventorySelect<T extends boolean = true> {
+  inventoryId?: T;
+  product?: T;
+  quantity?: T;
+  availableQuantity?: T;
+  reservedQuantity?: T;
+  location?: T;
+  warehouse?: T;
+  section?: T;
+  shelf?: T;
+  bin?: T;
+  minStockLevel?: T;
+  reorderPoint?: T;
+  reorderQuantity?: T;
+  lastStockTake?: T;
+  status?: T;
+  notes?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "purchases_select".
+ */
+export interface PurchasesSelect<T extends boolean = true> {
+  purchaseNumber?: T;
+  orderDate?: T;
+  expectedDeliveryDate?: T;
+  actualDeliveryDate?: T;
+  status?: T;
+  supplier?: T;
+  supplierInfo?:
+    | T
+    | {
+        name?: T;
+        contactPerson?: T;
+        email?: T;
+        phone?: T;
+      };
+  purchaseItems?:
+    | T
+    | {
+        product?: T;
+        quantity?: T;
+        unitPrice?: T;
+        discount?: T;
+        id?: T;
+      };
+  paymentInfo?:
+    | T
+    | {
+        paymentTerms?: T;
+        paymentMethod?: T;
+        paymentStatus?: T;
+        dueDate?: T;
+      };
+  subtotal?: T;
+  taxAmount?: T;
+  shippingCost?: T;
+  discount?: T;
+  total?: T;
+  notes?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "invoices_select".
+ */
+export interface InvoicesSelect<T extends boolean = true> {
+  invoiceNumber?: T;
+  invoiceDate?: T;
+  dueDate?: T;
+  status?: T;
+  order?: T;
+  customer?: T;
+  customerInfo?:
+    | T
+    | {
+        customerNumber?: T;
+        name?: T;
+        email?: T;
+        phone?: T;
+        taxId?: T;
+        vatId?: T;
+      };
+  billingAddress?:
+    | T
+    | {
+        street?: T;
+        zipCode?: T;
+        city?: T;
+        country?: T;
+      };
+  paymentTerms?: T;
+  paymentMethod?: T;
+  subtotal?: T;
+  taxAmount?: T;
+  shippingCost?: T;
+  discount?: T;
+  total?: T;
+  notes?: T;
+  issuedBy?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "payments_select".
+ */
+export interface PaymentsSelect<T extends boolean = true> {
+  paymentNumber?: T;
+  paymentDate?: T;
+  invoice?: T;
+  invoiceInfo?:
+    | T
+    | {
+        invoiceNumber?: T;
+        invoiceDate?: T;
+      };
+  amount?: T;
+  paymentMethod?: T;
+  status?: T;
+  customer?: T;
+  customerInfo?:
+    | T
+    | {
+        customerNumber?: T;
+        name?: T;
+      };
+  paymentReference?: T;
+  transactionId?: T;
+  notes?: T;
+  processedBy?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "warehouses_select".
+ */
+export interface WarehousesSelect<T extends boolean = true> {
+  name?: T;
+  code?: T;
+  description?: T;
+  isActive?: T;
+  address?:
+    | T
+    | {
+        street?: T;
+        zipCode?: T;
+        city?: T;
+        country?: T;
+      };
+  contact?:
+    | T
+    | {
+        name?: T;
+        phone?: T;
+        email?: T;
+      };
+  size?: T;
+  capacity?: T;
+  currentUsage?: T;
+  sections?:
+    | T
+    | {
+        name?: T;
+        code?: T;
+        description?: T;
+        id?: T;
+      };
+  notes?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "shippingMethods_select".
+ */
+export interface ShippingMethodsSelect<T extends boolean = true> {
+  name?: T;
+  carrier?: T;
+  description?: T;
+  price?: T;
+  estimatedDeliveryDays?:
+    | T
+    | {
+        min?: T;
+        max?: T;
+      };
+  isActive?: T;
+  isDefault?: T;
+  trackingAvailable?: T;
+  trackingUrlFormat?: T;
+  restrictions?:
+    | T
+    | {
+        minWeight?: T;
+        maxWeight?: T;
+        minOrderAmount?: T;
+        countries?:
+          | T
+          | {
+              country?: T;
+              id?: T;
+            };
+      };
+  notes?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "taxRates_select".
+ */
+export interface TaxRatesSelect<T extends boolean = true> {
+  name?: T;
+  rate?: T;
+  description?: T;
+  isActive?: T;
+  region?: T;
+  isDefault?: T;
+  category?: T;
+  effectiveFrom?: T;
+  effectiveTo?: T;
+  notes?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "reports_select".
+ */
+export interface ReportsSelect<T extends boolean = true> {
+  title?: T;
+  reportType?: T;
+  description?: T;
+  parameters?: T;
+  dateRange?:
+    | T
+    | {
+        startDate?: T;
+        endDate?: T;
+      };
+  results?: T;
+  createdBy?: T;
+  notes?: T;
+  isScheduled?: T;
+  schedule?:
+    | T
+    | {
+        frequency?: T;
+        nextRunDate?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "documents_select".
+ */
+export interface DocumentsSelect<T extends boolean = true> {
+  title?: T;
+  documentType?: T;
+  description?: T;
+  relatedEntity?: T;
+  createdBy?: T;
+  tags?:
+    | T
+    | {
+        tag?: T;
+        id?: T;
+      };
+  isPublic?: T;
+  expiryDate?: T;
+  notes?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  url?: T;
+  thumbnailURL?: T;
+  filename?: T;
+  mimeType?: T;
+  filesize?: T;
+  width?: T;
+  height?: T;
+  focalX?: T;
+  focalY?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "integrations_select".
+ */
+export interface IntegrationsSelect<T extends boolean = true> {
+  name?: T;
+  integrationType?: T;
+  description?: T;
+  connectionDetails?:
+    | T
+    | {
+        apiUrl?: T;
+        authType?: T;
+        credentials?: T;
+      };
+  status?: T;
+  lastSyncAt?: T;
+  syncFrequency?: T;
+  nextSyncAt?: T;
+  mappings?: T;
+  errorLog?:
+    | T
+    | {
+        timestamp?: T;
+        errorMessage?: T;
+        details?: T;
+        id?: T;
+      };
+  notes?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "auditLogs_select".
+ */
+export interface AuditLogsSelect<T extends boolean = true> {
+  user?: T;
+  action?: T;
+  entityType?: T;
+  entityId?: T;
+  details?: T;
+  changes?: T;
+  ipAddress?: T;
+  userAgent?: T;
+  status?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

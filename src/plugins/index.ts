@@ -27,6 +27,40 @@ const generateURL: GenerateURL<Post | Page> = ({ doc }) => {
 export const plugins: Plugin[] = [
   redirectsPlugin({
     collections: ['pages', 'posts'],
+    labels: {
+      singular: 'Weiterleitung',
+      plural: 'Weiterleitungen',
+    },
+    admin: {
+      group: 'Plugins',
+      description: {
+        de: 'Verwalten Sie URL-Weiterleitungen für Ihre Website',
+        en: 'Manage URL redirects for your website',
+      },
+    },
+    fields: [
+      {
+        name: 'from',
+        label: {
+          de: 'Von URL',
+          en: 'From URL',
+        },
+      },
+      {
+        name: 'to',
+        label: {
+          de: 'Zu URL',
+          en: 'To URL',
+        },
+      },
+      {
+        name: 'permanent',
+        label: {
+          de: 'Permanent',
+          en: 'Permanent',
+        },
+      },
+    ],
     overrides: {
       // @ts-expect-error - This is a valid override, mapped fields don't resolve to the same type
       fields: ({ defaultFields }) => {
@@ -60,6 +94,13 @@ export const plugins: Plugin[] = [
       payment: false,
     },
     formOverrides: {
+      admin: {
+        group: 'Plugins',
+      },
+      labels: {
+        singular: 'Formular',
+        plural: 'Formulare',
+      },
       fields: ({ defaultFields }) => {
         return defaultFields.map((field) => {
           if ('name' in field && field.name === 'confirmationMessage') {
@@ -80,11 +121,27 @@ export const plugins: Plugin[] = [
         })
       },
     },
+    formSubmissionOverrides: {
+      admin: {
+        group: 'Plugins',
+      },
+      labels: {
+        singular: 'Formular-Einsendung',
+        plural: 'Formular-Einsendungen',
+      },
+    },
   }),
   searchPlugin({
     collections: ['posts'],
     beforeSync: beforeSyncWithSearch,
     searchOverrides: {
+      admin: {
+        group: 'Plugins',
+      },
+      labels: {
+        singular: 'Suchergebnis',
+        plural: 'Suchergebnisse',
+      },
       fields: ({ defaultFields }) => {
         return [...defaultFields, ...searchFields]
       },

@@ -1,10 +1,13 @@
 // storage-adapter-import-placeholder
+import mongoose from 'mongoose'
 import { mongooseAdapter } from '@payloadcms/db-mongodb'
 
 import sharp from 'sharp' // sharp-import
 import path from 'path'
 import { buildConfig, PayloadRequest } from 'payload'
 import { fileURLToPath } from 'url'
+import { en } from '@payloadcms/translations/languages/en'
+import { de } from '@payloadcms/translations/languages/de'
 
 import { Categories } from './collections/Categories'
 import { Media } from './collections/Media'
@@ -16,11 +19,40 @@ import { Header } from './Header/config'
 import { plugins } from './plugins'
 import { defaultLexical } from '@/fields/defaultLexical'
 import { getServerSideURL } from './utilities/getURL'
+import { Products } from './collections/ERP/Products/Products'
+import { Suppliers } from './collections/ERP/Suppliers'
+import { Customers } from './collections/ERP/Customers'
+import { Orders } from './collections/ERP/Orders'
+import { Inventory } from './collections/ERP/Inventory'
+import { Purchases } from './collections/ERP/Purchases'
+import { Invoices } from './collections/ERP/Invoices'
+import { Payments } from './collections/ERP/Payments'
+import { Warehouses } from './collections/ERP/Warehouses'
+import { ShippingMethods } from './collections/ERP/ShippingMethods'
+import { TaxRates } from './collections/ERP/TaxRates'
+import { Reports } from './collections/ERP/Reports'
+import { Documents } from './collections/ERP/Documents'
+import { Integrations } from './collections/ERP/Integrations'
+import { AuditLogs } from './collections/ERP/AuditLogs'
+
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
 
+mongoose.connect(process.env.DATABASE_URI || '')
+  .then(() => {
+    console.log('MongoDB connected successfully')
+  })
+  .catch((err) => {
+    console.error('MongoDB connection error:', err)
+  })
+
 export default buildConfig({
+  i18n: { 
+    fallbackLanguage: 'de',
+    supportedLanguages: { en, de },
+
+  },
   admin: {
     components: {
       // The `BeforeLogin` component renders a message that you see while logging into your admin panel.
@@ -62,7 +94,21 @@ export default buildConfig({
   db: mongooseAdapter({
     url: process.env.DATABASE_URI || '',
   }),
-  collections: [Pages, Posts, Media, Categories, Users],
+  collections: [Pages, Posts, Media, Categories, Users, Products,
+    Suppliers,
+    Customers,
+    Orders,
+    Inventory,
+    Purchases,
+    Invoices,
+    Payments,
+    Warehouses,
+    ShippingMethods,
+    TaxRates,
+    Reports,
+    Documents,
+    Integrations,
+    AuditLogs,],
   cors: [getServerSideURL()].filter(Boolean),
   globals: [Header, Footer],
   plugins: [
@@ -79,10 +125,6 @@ export default buildConfig({
       run: ({ req }: { req: PayloadRequest }): boolean => {
         // Allow logged in users to execute this endpoint (default)
         if (req.user) return true
-
-        // If there is no logged in user, then check
-        // for the Vercel Cron secret to be present as an
-        // Authorization header:
         const authHeader = req.headers.get('authorization')
         return authHeader === `Bearer ${process.env.CRON_SECRET}`
       },
@@ -90,3 +132,4 @@ export default buildConfig({
     tasks: [],
   },
 })
+

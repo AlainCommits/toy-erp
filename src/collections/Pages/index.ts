@@ -23,6 +23,10 @@ import {
 
 export const Pages: CollectionConfig<'pages'> = {
   slug: 'pages',
+  labels: {
+    singular: 'Seite',
+    plural: 'Seiten',
+  },
   access: {
     create: authenticated,
     delete: authenticated,
@@ -37,6 +41,7 @@ export const Pages: CollectionConfig<'pages'> = {
     slug: true,
   },
   admin: {
+    group: 'System',
     defaultColumns: ['title', 'slug', 'updatedAt'],
     livePreview: {
       url: ({ data, req }) => {

@@ -1,0 +1,1 @@
+export { generateCustomerNumber } from './generateCustomerNumber'
