@@ -1,28 +1,48 @@
 import type { CollectionConfig } from 'payload'
-import { authenticated } from '../../access/authenticated'
+import { isSuperAdmin } from '@/access/isSuperAdmin'
 
 export const AuditLogs: CollectionConfig = {
-  slug: 'auditLogs',
+  slug: 'audit-logs',
   labels: {
     singular: 'Änderungsprotokoll',
     plural: 'Änderungsprotokolle',
   },
   admin: {
-    group: 'ERP',
+    group: 'System',
     useAsTitle: 'action',
     defaultColumns: ['action', 'user', 'entityType', 'createdAt'],
     description: {
       de: 'Protokolliert alle Änderungen innerhalb des Systems für Audit-Zwecke',
       en: 'Logs all changes within the system for audit purposes',
     },
+    hidden: ({ user }) => {
+      // Super admins can see everything
+      if (user?.roles?.includes('super-admin')) return false
+      // IT department can see audit logs
+      if (user?.roles?.includes('IT')) return false
+      // Hide from everyone else
+      return true
+    },
   },
   access: {
-    create: authenticated,
-    delete: authenticated,
-    read: authenticated,
-    update: authenticated, // Although audit logs shouldn't typically be updated
+    read: ({ req: { user } }) => {
+      // Must be logged in
+      if (!user) return false
+      
+      // Super admins can read everything
+      if (isSuperAdmin(user)) return true
+      
+      // IT department can read
+      if (user.roles?.includes('IT')) return true
+      
+      // Everyone else denied
+      return false
+    },
+    // Only super admins can create, update, or delete audit logs
+    create: ({ req: { user } }) => isSuperAdmin(user),
+    update: ({ req: { user } }) => isSuperAdmin(user),
+    delete: ({ req: { user } }) => isSuperAdmin(user),
   },
-  
   fields: [
     {
       name: 'user',
@@ -33,6 +53,12 @@ export const AuditLogs: CollectionConfig = {
         de: 'Benutzer',
         en: 'User',
       },
+    },
+    {
+      name: 'tenant',
+      type: 'relationship',
+      relationTo: 'tenants',
+      required: true,
     },
     {
       name: 'action',

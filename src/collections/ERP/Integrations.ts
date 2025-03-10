@@ -8,7 +8,7 @@ export const Integrations: CollectionConfig = {
     plural: 'Integrationen',
   },
   admin: {
-    group: 'ERP',
+    group: 'Dokumente & Integration',
     useAsTitle: 'name',
     defaultColumns: ['name', 'integrationType', 'status', 'lastSyncAt'],
   },
@@ -174,6 +174,7 @@ export const Integrations: CollectionConfig = {
         },
       ],
     },
+    
     {
       name: 'status',
       type: 'select',

@@ -1,5 +1,13 @@
 import type { CollectionConfig } from 'payload'
-import { authenticated } from '../../access/authenticated'
+import { isSuperAdmin } from '@/access/isSuperAdmin'
+import { 
+  generateOrderNumber, 
+  populateItemPrices, 
+  validateOrderItems,
+  assignCustomer,
+  updateInventory,
+  handleStatusChange
+} from './Orders/hooks'
 
 export const Orders: CollectionConfig = {
   slug: 'orders',
@@ -8,22 +16,70 @@ export const Orders: CollectionConfig = {
     plural: 'Bestellungen',
   },
   admin: {
-    group: 'ERP',
+    group: 'Verkauf & CRM',
     useAsTitle: 'orderNumber',
     defaultColumns: ['orderNumber', 'orderDate', 'status', 'total'],
+    hidden: ({ user }) => {
+      // Super admins can see everything
+      if (user?.roles?.includes('super-admin')) return false
+      // Show to sales department users
+      if (user?.roles?.includes('Verkauf')) return false
+      // Hide from everyone else
+      return true
+    },
   },
   access: {
-    create: authenticated,
-    delete: authenticated,
-    read: authenticated,
-    update: authenticated,
+    read: ({ req: { user } }) => {
+      // Must be logged in
+      if (!user) return false
+      
+      // Super admins can read everything
+      if (isSuperAdmin(user)) return true
+      
+      // Sales department can read
+      if (user.roles?.includes('Verkauf')) return true
+      
+      // Everyone else denied
+      return false
+    },
+    create: ({ req: { user } }) => {
+      if (!user) return false
+      return isSuperAdmin(user) || user.roles?.includes('Verkauf') || false
+    },
+    update: ({ req: { user } }) => {
+      if (!user) return false
+      return isSuperAdmin(user) || user.roles?.includes('Verkauf') || false
+    },
+    delete: ({ req: { user } }) => {
+      if (!user) return false
+      return isSuperAdmin(user) || user.roles?.includes('Verkauf') || false
+    },
   },
- 
+  hooks: {
+    beforeChange: [
+      assignCustomer,
+      generateOrderNumber,
+      populateItemPrices,
+      validateOrderItems,
+      handleStatusChange,
+    ],
+    afterChange: [
+      updateInventory,
+    ],
+  },
   fields: [
     {
       name: 'orderNumber',
       type: 'text',
-      required: true,
+      unique: true,
+      admin: {
+        readOnly: true,
+        position: 'sidebar',
+        description: {
+          de: 'Wird automatisch generiert',
+          en: 'Auto-generated order number',
+        },
+      },
       label: {
         de: 'Bestellnummer',
         en: 'Order Number',
@@ -33,6 +89,7 @@ export const Orders: CollectionConfig = {
       name: 'orderDate',
       type: 'date',
       required: true,
+      defaultValue: () => new Date().toISOString().split('T')[0],
       label: {
         de: 'Bestelldatum',
         en: 'Order Date',
@@ -137,6 +194,7 @@ export const Orders: CollectionConfig = {
     {
       name: 'orderItems',
       type: 'array',
+      required: true,
       label: {
         de: 'Bestellpositionen',
         en: 'Order Items',
@@ -147,6 +205,13 @@ export const Orders: CollectionConfig = {
           type: 'relationship',
           relationTo: 'products',
           required: true,
+          hasMany: false,
+          admin: {
+            description: {
+              de: 'Bei unzureichendem Lagerbestand wird das Feld rot markiert',
+              en: 'Field will turn red if stock is insufficient',
+            },
+          },
           label: {
             de: 'Produkt',
             en: 'Product',
@@ -166,6 +231,13 @@ export const Orders: CollectionConfig = {
           name: 'unitPrice',
           type: 'number',
           required: true,
+          admin: {
+            readOnly: true,
+            description: {
+              de: 'Wird automatisch aus dem Produkt übernommen',
+              en: 'Automatically populated from product',
+            },
+          },
           label: {
             de: 'Einzelpreis (€)',
             en: 'Unit Price (€)',
@@ -174,6 +246,8 @@ export const Orders: CollectionConfig = {
         {
           name: 'discount',
           type: 'number',
+          min: 0,
+          max: 100,
           label: {
             de: 'Rabatt (%)',
             en: 'Discount (%)',
@@ -278,7 +352,7 @@ export const Orders: CollectionConfig = {
     {
       name: 'shippingMethod',
       type: 'relationship',
-      relationTo: 'shippingMethods',
+      relationTo: 'shipping-methods',
       label: {
         de: 'Versandart',
         en: 'Shipping Method',
@@ -295,6 +369,10 @@ export const Orders: CollectionConfig = {
     {
       name: 'subtotal',
       type: 'number',
+      admin: {
+        readOnly: true,
+        position: 'sidebar',
+      },
       label: {
         de: 'Zwischensumme (€)',
         en: 'Subtotal (€)',
@@ -303,6 +381,10 @@ export const Orders: CollectionConfig = {
     {
       name: 'taxAmount',
       type: 'number',
+      admin: {
+        readOnly: true,
+        position: 'sidebar',
+      },
       label: {
         de: 'Steuerbetrag (€)',
         en: 'Tax Amount (€)',
@@ -311,6 +393,9 @@ export const Orders: CollectionConfig = {
     {
       name: 'shippingCost',
       type: 'number',
+      admin: {
+        position: 'sidebar',
+      },
       label: {
         de: 'Versandkosten (€)',
         en: 'Shipping Cost (€)',
@@ -319,6 +404,9 @@ export const Orders: CollectionConfig = {
     {
       name: 'discount',
       type: 'number',
+      admin: {
+        position: 'sidebar',
+      },
       label: {
         de: 'Rabatt (€)',
         en: 'Discount (€)',
@@ -327,7 +415,10 @@ export const Orders: CollectionConfig = {
     {
       name: 'total',
       type: 'number',
-      required: true,
+      admin: {
+        readOnly: true,
+        position: 'sidebar',
+      },
       label: {
         de: 'Gesamtbetrag (€)',
         en: 'Total Amount (€)',
@@ -341,15 +432,12 @@ export const Orders: CollectionConfig = {
         en: 'Notes',
       },
     },
-    {
-      name: 'createdBy',
-      type: 'relationship',
-      relationTo: 'users',
-      label: {
-        de: 'Erstellt von',
-        en: 'Created By',
-      },
-    },
+    // {
+    //   name: 'tenant',
+    //   type: 'relationship',
+    //   relationTo: 'tenants',
+    //   required: true,
+    // }
   ],
   timestamps: true,
 }

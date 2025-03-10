@@ -7,7 +7,7 @@ import { slugField } from '@/fields/slug'
 export const Categories: CollectionConfig = {
   slug: 'categories',
   admin: {
-    group: 'System',
+    group: 'Content',
     useAsTitle: 'title',
   },
   labels: {
@@ -27,5 +27,6 @@ export const Categories: CollectionConfig = {
       required: true,
     },
     ...slugField(),
+    
   ],
 }

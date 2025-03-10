@@ -1,23 +1,51 @@
 import type { CollectionConfig } from 'payload'
-import { authenticated } from '../../access/authenticated'
-
+import { isSuperAdmin } from '@/access/isSuperAdmin'
 
 export const ShippingMethods: CollectionConfig = {
-  slug: 'shippingMethods',
+  slug: 'shipping-methods',
   labels: {
     singular: 'Versandart',
     plural: 'Versandarten',
   },
-  access: {
-    create: authenticated,
-    delete: authenticated,
-    read: authenticated,
-    update: authenticated,
-  },
   admin: {
-    group: 'ERP',
+    group: 'Verkauf & CRM',
     useAsTitle: 'name',
     defaultColumns: ['name', 'carrier', 'price', 'isActive'],
+    hidden: ({ user }) => {
+      // Super admins can see everything
+      if (user?.roles?.includes('super-admin')) return false
+      // Show to sales department users
+      if (user?.roles?.includes('Verkauf')) return false
+      // Hide from everyone else
+      return true
+    },
+  },
+  access: {
+    read: ({ req: { user } }) => {
+      // Must be logged in
+      if (!user) return false
+      
+      // Super admins can read everything
+      if (isSuperAdmin(user)) return true
+      
+      // Sales department can read
+      if (user.roles?.includes('Verkauf')) return true
+      
+      // Everyone else denied
+      return false
+    },
+    create: ({ req: { user } }) => {
+      if (!user) return false
+      return isSuperAdmin(user) || user.roles?.includes('Verkauf') || false
+    },
+    update: ({ req: { user } }) => {
+      if (!user) return false
+      return isSuperAdmin(user) || user.roles?.includes('Verkauf') || false
+    },
+    delete: ({ req: { user } }) => {
+      if (!user) return false
+      return isSuperAdmin(user) || user.roles?.includes('Verkauf') || false
+    },
   },
   fields: [
     {
@@ -180,6 +208,12 @@ export const ShippingMethods: CollectionConfig = {
         en: 'Internal Notes',
       },
     },
+    // {
+    //   name: 'tenant',
+    //   type: 'relationship',
+    //   relationTo: 'tenants',
+    //   required: true,
+    // }
   ],
   timestamps: true,
 }

@@ -45,6 +45,15 @@ export const Media: CollectionConfig = {
         },
       }),
     },
+    // Das tenant-Feld wird vom Multi-Tenant-Plugin automatisch hinzugefügt
+    // Daher ist die manuelle Definition zu entfernen:
+    // {
+    //   name: 'tenant',
+    //   type: 'relationship',
+    //   relationTo: 'tenants',
+    //   required: true,
+    //   hasMany: false,
+    // },
   ],
   upload: {
     // Upload to the public/media directory in Next.js making them publicly accessible even outside of Payload

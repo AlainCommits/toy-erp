@@ -1,5 +1,5 @@
 import type { CollectionConfig } from 'payload'
-import { authenticated } from '../../access/authenticated'
+import { isSuperAdmin } from '@/access/isSuperAdmin'
 
 export const Payments: CollectionConfig = {
   slug: 'payments',
@@ -8,17 +8,45 @@ export const Payments: CollectionConfig = {
     plural: 'Zahlungen',
   },
   admin: {
-    group: 'ERP',
-    useAsTitle: 'paymentNumber',
+    group: 'Finanzen',
+    useAsTitle: 'paymentReference',
     defaultColumns: ['paymentNumber', 'paymentDate', 'amount', 'status'],
+    hidden: ({ user }) => {
+      // Super admins can see everything
+      if (user?.roles?.includes('super-admin')) return false
+      // Show to finance department users
+      if (user?.roles?.includes('Finanzen')) return false
+      // Hide from everyone else
+      return true
+    },
   },
   access: {
-    create: authenticated,
-    delete: authenticated,
-    read: authenticated,
-    update: authenticated,
+    read: ({ req: { user } }) => {
+      // Must be logged in
+      if (!user) return false
+      
+      // Super admins can read everything
+      if (isSuperAdmin(user)) return true
+      
+      // Finance department can read
+      if (user.roles?.includes('Finanzen')) return true
+      
+      // Everyone else denied
+      return false
+    },
+    create: ({ req: { user } }) => {
+      if (!user) return false
+      return isSuperAdmin(user) || user.roles?.includes('Finanzen') || false
+    },
+    update: ({ req: { user } }) => {
+      if (!user) return false
+      return isSuperAdmin(user) || user.roles?.includes('Finanzen') || false
+    },
+    delete: ({ req: { user } }) => {
+      if (!user) return false
+      return isSuperAdmin(user) || user.roles?.includes('Finanzen') || false
+    },
   },
-
   fields: [
     {
       name: 'paymentNumber',
@@ -243,6 +271,12 @@ export const Payments: CollectionConfig = {
         en: 'Processed By',
       },
     },
+    // {
+    //   name: 'tenant',
+    //   type: 'relationship',
+    //   relationTo: 'tenants',
+    //   required: true,
+    // }
   ],
   timestamps: true,
 }

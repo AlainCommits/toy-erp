@@ -1,5 +1,5 @@
 import type { CollectionConfig } from 'payload'
-import { authenticated } from '../../access/authenticated'
+import { isSuperAdmin } from '@/access/isSuperAdmin'
 
 export const Warehouses: CollectionConfig = {
   slug: 'warehouses',
@@ -8,17 +8,45 @@ export const Warehouses: CollectionConfig = {
     plural: 'Lagerhäuser',
   },
   admin: {
-    group: 'ERP',
+    group: 'Lagerverwaltung',
     useAsTitle: 'name',
     defaultColumns: ['name', 'code', 'address.city', 'isActive'],
+    hidden: ({ user }) => {
+      // Super admins can see everything
+      if (user?.roles?.includes('super-admin')) return false
+      // Show to warehouse department users
+      if (user?.roles?.includes('Lager')) return false
+      // Hide from everyone else
+      return true
+    },
   },
   access: {
-    create: authenticated,
-    delete: authenticated,
-    read: authenticated,
-    update: authenticated,
+    read: ({ req: { user } }) => {
+      // Must be logged in
+      if (!user) return false
+      
+      // Super admins can read everything
+      if (isSuperAdmin(user)) return true
+      
+      // Warehouse department can read
+      if (user.roles?.includes('Lager')) return true
+      
+      // Everyone else denied
+      return false
+    },
+    create: ({ req: { user } }) => {
+      if (!user) return false
+      return isSuperAdmin(user) || user.roles?.includes('Lager') || false
+    },
+    update: ({ req: { user } }) => {
+      if (!user) return false
+      return isSuperAdmin(user) || user.roles?.includes('Lager') || false
+    },
+    delete: ({ req: { user } }) => {
+      if (!user) return false
+      return isSuperAdmin(user) || user.roles?.includes('Lager') || false
+    },
   },
-
   fields: [
     {
       name: 'name',
@@ -206,6 +234,12 @@ export const Warehouses: CollectionConfig = {
         en: 'Notes',
       },
     },
+    // {
+    //   name: 'tenant',
+    //   type: 'relationship',
+    //   relationTo: 'tenants',
+    //   required: true,
+    // }
   ],
   timestamps: true,
 }

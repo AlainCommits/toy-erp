@@ -1,0 +1,4 @@
+@tailwind theme;
+/* @tailwind base;  <- Deaktivieren, um Payload-Styles nicht zu überschreiben */
+@tailwind components;
+@tailwind utilities;

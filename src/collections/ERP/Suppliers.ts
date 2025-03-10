@@ -1,5 +1,5 @@
 import type { CollectionConfig } from 'payload'
-import { authenticated } from '../../access/authenticated'
+import { isSuperAdmin } from '@/access/isSuperAdmin'
 
 export const Suppliers: CollectionConfig = {
   slug: 'suppliers',
@@ -8,17 +8,45 @@ export const Suppliers: CollectionConfig = {
     plural: 'Lieferanten',
   },
   admin: {
-    group: 'ERP',
+    group: 'Einkauf & Lieferanten',
     useAsTitle: 'name',
     defaultColumns: ['name', 'contactPerson', 'email', 'phone'],
+    hidden: ({ user }) => {
+      // Super admins can see everything
+      if (user?.roles?.includes('super-admin')) return false
+      // Show to purchasing department users
+      if (user?.roles?.includes('Einkauf')) return false
+      // Hide from everyone else
+      return true
+    },
   },
   access: {
-    create: authenticated,
-    delete: authenticated,
-    read: authenticated,
-    update: authenticated,
+    read: ({ req: { user } }) => {
+      // Must be logged in
+      if (!user) return false
+      
+      // Super admins can read everything
+      if (isSuperAdmin(user)) return true
+      
+      // Purchasing department can read
+      if (user.roles?.includes('Einkauf')) return true
+      
+      // Everyone else denied
+      return false
+    },
+    create: ({ req: { user } }) => {
+      if (!user) return false
+      return isSuperAdmin(user) || user.roles?.includes('Einkauf') || false
+    },
+    update: ({ req: { user } }) => {
+      if (!user) return false
+      return isSuperAdmin(user) || user.roles?.includes('Einkauf') || false
+    },
+    delete: ({ req: { user } }) => {
+      if (!user) return false
+      return isSuperAdmin(user) || user.roles?.includes('Einkauf') || false
+    },
   },
- 
   fields: [
     {
       name: 'name',
@@ -259,6 +287,12 @@ export const Suppliers: CollectionConfig = {
         },
       ],
     },
+    // {
+    //   name: 'tenant',
+    //   type: 'relationship',
+    //   relationTo: 'tenants',
+    //   required: true,
+    // }
   ],
   timestamps: true,
 }

@@ -152,6 +152,7 @@ export const Reports: CollectionConfig = {
         en: 'Created By',
       },
     },
+    
     {
       name: 'notes',
       type: 'textarea',

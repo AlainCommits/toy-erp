@@ -1,6 +1,6 @@
 import type { CollectionConfig } from 'payload'
-import { authenticated } from '../../access/authenticated'
-import { generateCustomerNumber, assignOrders } from './Customers/hooks'
+import { isSuperAdmin } from '@/access/isSuperAdmin'
+import { generateCustomerNumber } from './Customers/hooks'
 
 export const Customers: CollectionConfig = {
   slug: 'customers',
@@ -9,34 +9,58 @@ export const Customers: CollectionConfig = {
     plural: 'Kunden',
   },
   admin: {
-    group: 'ERP',
+    group: 'Verkauf & CRM',
     useAsTitle: 'name',
-    defaultColumns: ['name', 'customerNumber', 'email', 'phone'],
+    defaultColumns: ['customerNumber', 'name', 'email', 'customerType'],
+    hidden: ({ user }) => {
+      // Super admins can see everything
+      if (user?.roles?.includes('super-admin')) return false
+      // Show to sales department users
+      if (user?.roles?.includes('Verkauf')) return false
+      // Hide from everyone else
+      return true
+    },
   },
   access: {
-    create: authenticated,
-    delete: authenticated,
-    read: authenticated,
-    update: authenticated,
-  },
- 
-  fields: [
-    {
-      name: 'name',
-      type: 'text',
-      required: true,
-      label: {
-        de: 'Kundenname',
-        en: 'Customer Name',
-      },
+    read: ({ req: { user } }) => {
+      // Must be logged in
+      if (!user) return false
+      
+      // Super admins can read everything
+      if (isSuperAdmin(user)) return true
+      
+      // Sales department can read
+      if (user.roles?.includes('Verkauf')) return true
+      
+      // Everyone else denied
+      return false
     },
+    create: ({ req: { user } }) => {
+      if (!user) return false
+      return isSuperAdmin(user) || user.roles?.includes('Verkauf') || false
+    },
+    update: ({ req: { user } }) => {
+      if (!user) return false
+      return isSuperAdmin(user) || user.roles?.includes('Verkauf') || false
+    },
+    delete: ({ req: { user } }) => {
+      if (!user) return false
+      return isSuperAdmin(user) || user.roles?.includes('Verkauf') || false
+    },
+  },
+  hooks: {
+    beforeChange: [
+      generateCustomerNumber,
+    ],
+  },
+  fields: [
     {
       name: 'customerNumber',
       type: 'text',
-      required: true,
       unique: true,
       admin: {
-        disabled: true,
+        readOnly: true,
+        position: 'sidebar',
         description: {
           de: 'Wird automatisch generiert',
           en: 'Auto-generated customer number',
@@ -48,16 +72,18 @@ export const Customers: CollectionConfig = {
       },
     },
     {
-      name: 'contactPerson',
+      name: 'name',
       type: 'text',
+      required: true,
       label: {
-        de: 'Ansprechpartner',
-        en: 'Contact Person',
+        de: 'Name',
+        en: 'Name',
       },
     },
     {
       name: 'email',
       type: 'email',
+      unique: true,
       label: {
         de: 'E-Mail',
         en: 'Email',
@@ -74,20 +100,15 @@ export const Customers: CollectionConfig = {
     {
       name: 'customerType',
       type: 'select',
+      required: true,
+      defaultValue: 'retail',
       options: [
         {
           label: {
-            de: 'Einzelhandel',
+            de: 'Privatkunde',
             en: 'Retail',
           },
           value: 'retail',
-        },
-        {
-          label: {
-            de: 'Großhandel',
-            en: 'Wholesale',
-          },
-          value: 'wholesale',
         },
         {
           label: {
@@ -96,62 +117,17 @@ export const Customers: CollectionConfig = {
           },
           value: 'business',
         },
+        {
+          label: {
+            de: 'Großhandel',
+            en: 'Wholesale',
+          },
+          value: 'wholesale',
+        },
       ],
       label: {
         de: 'Kundentyp',
         en: 'Customer Type',
-      },
-    },
-    {
-      name: 'taxId',
-      type: 'text',
-      label: {
-        de: 'Steuernummer',
-        en: 'Tax ID',
-      },
-    },
-    {
-      name: 'vatId',
-      type: 'text',
-      label: {
-        de: 'USt-IdNr.',
-        en: 'VAT ID',
-      },
-    },
-    {
-      name: 'paymentTerms',
-      type: 'text',
-      label: {
-        de: 'Zahlungsbedingungen',
-        en: 'Payment Terms',
-      },
-    },
-    {
-      name: 'notes',
-      type: 'textarea',
-      label: {
-        de: 'Notizen',
-        en: 'Notes',
-      },
-    },
-    {
-      name: 'orders',
-      type: 'relationship',
-      relationTo: 'orders',
-      hasMany: true,
-      label: {
-        de: 'Bestellungen',
-        en: 'Orders',
-      },
-    },
-    {
-      name: 'invoices',
-      type: 'relationship',
-      relationTo: 'invoices',
-      hasMany: true,
-      label: {
-        de: 'Rechnungen',
-        en: 'Invoices',
       },
     },
     {
@@ -248,14 +224,129 @@ export const Customers: CollectionConfig = {
         },
       ],
     },
+    {
+      name: 'companyDetails',
+      type: 'group',
+      label: {
+        de: 'Firmendaten',
+        en: 'Company Details',
+      },
+      admin: {
+        condition: (data) => data.customerType === 'business' || data.customerType === 'wholesale',
+      },
+      fields: [
+        {
+          name: 'companyName',
+          type: 'text',
+          label: {
+            de: 'Firmenname',
+            en: 'Company Name',
+          },
+        },
+        {
+          name: 'taxId',
+          type: 'text',
+          label: {
+            de: 'Steuernummer',
+            en: 'Tax ID',
+          },
+        },
+        {
+          name: 'vatId',
+          type: 'text',
+          label: {
+            de: 'USt-IdNr.',
+            en: 'VAT ID',
+          },
+        },
+      ],
+    },
+    {
+      name: 'paymentTerms',
+      type: 'group',
+      label: {
+        de: 'Zahlungsbedingungen',
+        en: 'Payment Terms',
+      },
+      fields: [
+        {
+          name: 'method',
+          type: 'select',
+          options: [
+            {
+              label: {
+                de: 'Rechnung',
+                en: 'Invoice',
+              },
+              value: 'invoice',
+            },
+            {
+              label: {
+                de: 'Lastschrift',
+                en: 'Direct Debit',
+              },
+              value: 'directDebit',
+            },
+            {
+              label: {
+                de: 'Kreditkarte',
+                en: 'Credit Card',
+              },
+              value: 'creditCard',
+            },
+          ],
+          label: {
+            de: 'Zahlungsart',
+            en: 'Payment Method',
+          },
+        },
+        {
+          name: 'terms',
+          type: 'select',
+          options: [
+            {
+              label: {
+                de: 'Sofort',
+                en: 'Immediate',
+              },
+              value: 'immediate',
+            },
+            {
+              label: {
+                de: '14 Tage',
+                en: '14 Days',
+              },
+              value: 'net14',
+            },
+            {
+              label: {
+                de: '30 Tage',
+                en: '30 Days',
+              },
+              value: 'net30',
+            },
+          ],
+          label: {
+            de: 'Zahlungsziel',
+            en: 'Payment Terms',
+          },
+        },
+      ],
+    },
+    {
+      name: 'notes',
+      type: 'textarea',
+      label: {
+        de: 'Anmerkungen',
+        en: 'Notes',
+      },
+    },
+    // {
+    //   name: 'tenant',
+    //   type: 'relationship',
+    //   relationTo: 'tenants',
+    //   required: true,
+    // }
   ],
-  hooks: {
-    beforeChange: [
-      generateCustomerNumber,
-    ],
-    afterChange: [
-      assignOrders,
-    ],
-  },
   timestamps: true,
 }

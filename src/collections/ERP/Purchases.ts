@@ -1,5 +1,6 @@
 import type { CollectionConfig } from 'payload'
-import { authenticated } from '../../access/authenticated'
+import { isSuperAdmin } from '@/access/isSuperAdmin'
+import { updateInventory, handleCancellation } from './Purchases/hooks'
 
 export const Purchases: CollectionConfig = {
   slug: 'purchases',
@@ -8,17 +9,53 @@ export const Purchases: CollectionConfig = {
     plural: 'Einkäufe',
   },
   admin: {
-    group: 'ERP',
+    group: 'Einkauf & Lieferanten',
     useAsTitle: 'purchaseNumber',
-    defaultColumns: ['purchaseNumber', 'orderDate', 'status', 'total'],
+    defaultColumns: ['purchaseNumber', 'orderDate', 'status', 'supplier'],
+    hidden: ({ user }) => {
+      // Super admins can see everything
+      if (user?.roles?.includes('super-admin')) return false
+      // Show to purchasing department users
+      if (user?.roles?.includes('Einkauf')) return false
+      // Hide from everyone else
+      return true
+    },
   },
   access: {
-    create: authenticated,
-    delete: authenticated,
-    read: authenticated,
-    update: authenticated,
+    read: ({ req: { user } }) => {
+      // Must be logged in
+      if (!user) return false
+      
+      // Super admins can read everything
+      if (isSuperAdmin(user)) return true
+      
+      // Purchasing department can read
+      if (user.roles?.includes('Einkauf')) return true
+      
+      // Everyone else denied
+      return false
+    },
+    create: ({ req: { user } }) => {
+      if (!user) return false
+      return isSuperAdmin(user) || user.roles?.includes('Einkauf') || false
+    },
+    update: ({ req: { user } }) => {
+      if (!user) return false
+      return isSuperAdmin(user) || user.roles?.includes('Einkauf') || false
+    },
+    delete: ({ req: { user } }) => {
+      if (!user) return false
+      return isSuperAdmin(user) || user.roles?.includes('Einkauf') || false
+    },
   },
-
+  hooks: {
+    beforeChange: [
+      handleCancellation,
+    ],
+    afterChange: [
+      updateInventory,
+    ],
+  },
   fields: [
     {
       name: 'purchaseNumber',
@@ -42,7 +79,7 @@ export const Purchases: CollectionConfig = {
       name: 'expectedDeliveryDate',
       type: 'date',
       label: {
-        de: 'Voraussichtliches Lieferdatum',
+        de: 'Erwartetes Lieferdatum',
         en: 'Expected Delivery Date',
       },
     },
@@ -58,10 +95,6 @@ export const Purchases: CollectionConfig = {
       name: 'status',
       type: 'select',
       required: true,
-      label: {
-        de: 'Status',
-        en: 'Status',
-      },
       defaultValue: 'ordered',
       options: [
         {
@@ -73,7 +106,7 @@ export const Purchases: CollectionConfig = {
         },
         {
           label: {
-            de: 'Teillieferung',
+            de: 'Teilweise geliefert',
             en: 'Partially Delivered',
           },
           value: 'partiallyDelivered',
@@ -100,6 +133,10 @@ export const Purchases: CollectionConfig = {
           value: 'cancelled',
         },
       ],
+      label: {
+        de: 'Status',
+        en: 'Status',
+      },
     },
     {
       name: 'supplier',
@@ -115,7 +152,7 @@ export const Purchases: CollectionConfig = {
       name: 'supplierInfo',
       type: 'group',
       label: {
-        de: 'Lieferanteninformationen',
+        de: 'Lieferanten-Information',
         en: 'Supplier Information',
       },
       fields: [
@@ -157,6 +194,7 @@ export const Purchases: CollectionConfig = {
     {
       name: 'purchaseItems',
       type: 'array',
+      required: true,
       label: {
         de: 'Einkaufspositionen',
         en: 'Purchase Items',
@@ -180,6 +218,21 @@ export const Purchases: CollectionConfig = {
           label: {
             de: 'Menge',
             en: 'Quantity',
+          },
+        },
+        {
+          name: 'receivedQuantity',
+          type: 'number',
+          min: 0,
+          admin: {
+            description: {
+              de: 'Tatsächlich gelieferte Menge',
+              en: 'Actually received quantity',
+            },
+          },
+          label: {
+            de: 'Gelieferte Menge',
+            en: 'Received Quantity',
           },
         },
         {
@@ -228,10 +281,6 @@ export const Purchases: CollectionConfig = {
         {
           name: 'paymentStatus',
           type: 'select',
-          label: {
-            de: 'Zahlungsstatus',
-            en: 'Payment Status',
-          },
           options: [
             {
               label: {
@@ -262,6 +311,10 @@ export const Purchases: CollectionConfig = {
               value: 'overdue',
             },
           ],
+          label: {
+            de: 'Zahlungsstatus',
+            en: 'Payment Status',
+          },
         },
         {
           name: 'dueDate',
@@ -322,6 +375,12 @@ export const Purchases: CollectionConfig = {
         en: 'Notes',
       },
     },
+    // {
+    //   name: 'tenant',
+    //   type: 'relationship',
+    //   relationTo: 'tenants',
+    //   required: true,
+    // },
   ],
   timestamps: true,
 }

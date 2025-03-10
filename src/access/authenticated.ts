@@ -1,9 +1,8 @@
-import type { AccessArgs } from 'payload'
+import { Access } from 'payload'
 
 import type { User } from '@/payload-types'
 
-type isAuthenticated = (args: AccessArgs<User>) => boolean
-
-export const authenticated: isAuthenticated = ({ req: { user } }) => {
+// Only allows authenticated users to access
+export const authenticated: Access = ({ req: { user } }) => {
   return Boolean(user)
 }

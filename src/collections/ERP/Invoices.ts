@@ -1,5 +1,5 @@
 import type { CollectionConfig } from 'payload'
-import { authenticated } from '../../access/authenticated'
+import { isSuperAdmin } from '@/access/isSuperAdmin'
 
 export const Invoices: CollectionConfig = {
   slug: 'invoices',
@@ -8,17 +8,45 @@ export const Invoices: CollectionConfig = {
     plural: 'Rechnungen',
   },
   admin: {
-    group: 'ERP',
+    group: 'Finanzen',
     useAsTitle: 'invoiceNumber',
     defaultColumns: ['invoiceNumber', 'invoiceDate', 'dueDate', 'status', 'total'],
+    hidden: ({ user }) => {
+      // Super admins can see everything
+      if (user?.roles?.includes('super-admin')) return false
+      // Show to finance department users
+      if (user?.roles?.includes('Finanzen')) return false
+      // Hide from everyone else
+      return true
+    },
   },
   access: {
-    create: authenticated,
-    delete: authenticated,
-    read: authenticated,
-    update: authenticated,
+    read: ({ req: { user } }) => {
+      // Must be logged in
+      if (!user) return false
+      
+      // Super admins can read everything
+      if (isSuperAdmin(user)) return true
+      
+      // Finance department can read
+      if (user.roles?.includes('Finanzen')) return true
+      
+      // Everyone else denied
+      return false
+    },
+    create: ({ req: { user } }) => {
+      if (!user) return false
+      return isSuperAdmin(user) || user.roles?.includes('Finanzen') || false
+    },
+    update: ({ req: { user } }) => {
+      if (!user) return false
+      return isSuperAdmin(user) || user.roles?.includes('Finanzen') || false
+    },
+    delete: ({ req: { user } }) => {
+      if (!user) return false
+      return isSuperAdmin(user) || user.roles?.includes('Finanzen') || false
+    },
   },
- 
   fields: [
     {
       name: 'invoiceNumber',
@@ -287,6 +315,12 @@ export const Invoices: CollectionConfig = {
         en: 'Issued By',
       },
     },
+    // {
+    //   name: 'tenant',
+    //   type: 'relationship',
+    //   relationTo: 'tenants',
+    //   required: true,
+    // }
   ],
   timestamps: true,
 }

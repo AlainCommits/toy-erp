@@ -1,0 +1,15 @@
+@tailwind theme;
+/* @tailwind base wird nicht importiert um Payload Styles nicht zu überschreiben */
+@tailwind components;
+@tailwind utilities;
+
+/* Custom Payload Admin Styles */
+.dashboard {
+  @apply p-4;
+}
+
+.card {
+  @apply bg-white rounded-lg shadow p-4;
+}
+
+/* ... weitere spezifische Admin Panel Styles */

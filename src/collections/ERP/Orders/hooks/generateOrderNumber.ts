@@ -18,7 +18,7 @@ export const generateOrderNumber: CollectionBeforeChangeHook<Order> = async ({
   })
 
   let nextNumber = 1
-  const lastOrder = existingOrders.docs[0] as Order | undefined
+  const lastOrder = existingOrders.docs[0]
   if (lastOrder?.orderNumber) {
     const match = lastOrder.orderNumber.match(/ORD-(\d+)/)
     if (match?.[1]) {
@@ -26,9 +26,9 @@ export const generateOrderNumber: CollectionBeforeChangeHook<Order> = async ({
     }
   }
 
-  // Set current date as orderDate if not provided
+  // Set orderDate to current date if not provided
   if (!data.orderDate) {
-    data.orderDate = new Date().toISOString()
+    data.orderDate = new Date().toISOString().split('T')[0]
   }
 
   return {

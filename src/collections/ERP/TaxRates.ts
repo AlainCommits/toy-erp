@@ -1,24 +1,52 @@
 import type { CollectionConfig } from 'payload'
-import { authenticated } from '../../access/authenticated'
+import { isSuperAdmin } from '@/access/isSuperAdmin'
 
 export const TaxRates: CollectionConfig = {
-  slug: 'taxRates',
+  slug: 'tax-rates',
   labels: {
     singular: 'Steuersatz',
     plural: 'Steuersätze',
   },
   admin: {
-    group: 'ERP',
+    group: 'Finanzen',
     useAsTitle: 'name',
     defaultColumns: ['name', 'rate', 'region', 'isActive'],
+    hidden: ({ user }) => {
+      // Super admins can see everything
+      if (user?.roles?.includes('super-admin')) return false
+      // Show to finance department users
+      if (user?.roles?.includes('Finanzen')) return false
+      // Hide from everyone else
+      return true
+    },
   },
   access: {
-    create: authenticated,
-    delete: authenticated,
-    read: authenticated,
-    update: authenticated,
+    read: ({ req: { user } }) => {
+      // Must be logged in
+      if (!user) return false
+      
+      // Super admins can read everything
+      if (isSuperAdmin(user)) return true
+      
+      // Finance department can read
+      if (user.roles?.includes('Finanzen')) return true
+      
+      // Everyone else denied
+      return false
+    },
+    create: ({ req: { user } }) => {
+      if (!user) return false
+      return isSuperAdmin(user) || user.roles?.includes('Finanzen') || false
+    },
+    update: ({ req: { user } }) => {
+      if (!user) return false
+      return isSuperAdmin(user) || user.roles?.includes('Finanzen') || false
+    },
+    delete: ({ req: { user } }) => {
+      if (!user) return false
+      return isSuperAdmin(user) || user.roles?.includes('Finanzen') || false
+    },
   },
-
   fields: [
     {
       name: 'name',
@@ -134,6 +162,12 @@ export const TaxRates: CollectionConfig = {
         en: 'Internal Notes',
       },
     },
+    // {
+    //   name: 'tenant',
+    //   type: 'relationship',
+    //   relationTo: 'tenants',
+    //   required: true,
+    // }
   ],
   timestamps: true,
 }

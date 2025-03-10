@@ -1,6 +1,6 @@
 import type { CollectionConfig } from 'payload'
-import { authenticated } from '../../access/authenticated'
-import { generateArticleNumber, syncProductPrice } from './Products/hooks'
+import { isSuperAdmin } from '@/access/isSuperAdmin'
+import { generateArticleNumber, syncProductPrice, syncInventoryQuantity } from './Products/hooks'
 
 export const Products: CollectionConfig = {
   slug: 'products',
@@ -8,18 +8,73 @@ export const Products: CollectionConfig = {
     singular: 'Produkt',
     plural: 'Produkte',
   },
-  access: {
-    create: authenticated,
-    delete: authenticated,
-    read: authenticated,
-    update: authenticated,
-  },
   admin: {
-    group: 'ERP',
+    group: 'Lagerverwaltung',
     useAsTitle: 'name',
-    defaultColumns: ['name', 'sku', 'price', 'stockQuantity'],
+    defaultColumns: ['sku', 'name', 'price', 'stockQuantity'],
+    hidden: ({ user }) => {
+      // Super admins can see everything
+      if (user?.roles?.includes('super-admin')) return false
+      // Show to warehouse department users
+      if (user?.roles?.includes('Lager')) return false
+      // Hide from everyone else
+      return true
+    },
+  },
+  access: {
+    read: ({ req: { user } }) => {
+      // Must be logged in
+      if (!user) return false
+      
+      // Super admins can read everything
+      if (isSuperAdmin(user)) return true
+      
+      // Warehouse department can read
+      if (user.roles?.includes('Lager')) return true
+      
+      // Everyone else denied
+      return false
+    },
+    create: ({ req: { user } }) => {
+      if (!user) return false
+      return isSuperAdmin(user) || user.roles?.includes('Lager') || false
+    },
+    update: ({ req: { user } }) => {
+      if (!user) return false
+      return isSuperAdmin(user) || user.roles?.includes('Lager') || false
+    },
+    delete: ({ req: { user } }) => {
+      if (!user) return false
+      return isSuperAdmin(user) || user.roles?.includes('Lager') || false
+    },
+  },
+  hooks: {
+    beforeChange: [
+      generateArticleNumber,
+    ],
+    afterChange: [
+      syncProductPrice,
+      syncInventoryQuantity,
+    ],
   },
   fields: [
+    {
+      name: 'sku',
+      type: 'text',
+      unique: true,
+      admin: {
+        readOnly: true,
+        position: 'sidebar',
+        description: {
+          de: 'Wird automatisch generiert',
+          en: 'Auto-generated article number',
+        },
+      },
+      label: {
+        de: 'Artikelnummer',
+        en: 'SKU',
+      },
+    },
     {
       name: 'name',
       type: 'text',
@@ -89,23 +144,6 @@ export const Products: CollectionConfig = {
           },
         },
       ],
-    },
-    {
-      name: 'sku',
-      type: 'text',
-      required: true,
-      unique: true,
-      admin: {
-        disabled: true,
-        description: {
-          de: 'Wird automatisch generiert',
-          en: 'Auto-generated article number',
-        },
-      },
-      label: {
-        de: 'Artikelnummer',
-        en: 'SKU',
-      },
     },
     {
       name: 'barcode',
@@ -208,12 +246,10 @@ export const Products: CollectionConfig = {
     {
       name: 'taxRate',
       type: 'relationship',
-      relationTo: 'taxRates',
+      relationTo: 'tax-rates',
       label: {
         de: 'Steuersatz',
         en: 'Tax Rate',
-      },
-      admin: {
       },
     },
     {
@@ -244,14 +280,12 @@ export const Products: CollectionConfig = {
         },
       ],
     },
+    // {
+    //   name: 'tenant',
+    //   type: 'relationship',
+    //   relationTo: 'tenants',
+    //   required: true,
+    // },
   ],
-  hooks: {
-    beforeChange: [
-      generateArticleNumber,
-    ],
-    afterChange: [
-      syncProductPrice,
-    ],
-  },
   timestamps: true,
 }

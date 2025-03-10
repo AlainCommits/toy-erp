@@ -1,5 +1,6 @@
 import type { CollectionConfig } from 'payload'
-import { authenticated } from '../../access/authenticated'
+import { isSuperAdmin } from '../../access/isSuperAdmin'
+import { syncProductQuantity } from './Inventory/hooks/syncProductQuantity'
 
 export const Inventory: CollectionConfig = {
   slug: 'inventory',
@@ -8,22 +9,56 @@ export const Inventory: CollectionConfig = {
     plural: 'Lagerbestände',
   },
   admin: {
-    group: 'ERP',
+    group: 'Lagerverwaltung',
     useAsTitle: 'inventoryId',
-    defaultColumns: ['inventoryId', 'quantity', 'location', 'updatedAt'],
+    defaultColumns: ['inventoryId', 'product', 'warehouse', 'quantity'],
+    hidden: ({ user }) => {
+      // Super admins can see everything
+      if (user?.roles?.includes('super-admin')) return false
+      // Show to warehouse department users
+      if (user?.roles?.includes('Lager')) return false
+      // Hide from everyone else
+      return true
+    },
   },
   access: {
-    create: authenticated,
-    delete: authenticated,
-    read: authenticated,
-    update: authenticated,
+    read: ({ req: { user } }) => {
+      // Must be logged in
+      if (!user) return false
+      
+      // Super admins can read everything
+      if (isSuperAdmin(user)) return true
+      
+      // Warehouse department can read
+      if (user.roles?.includes('Lager')) return true
+      
+      // Everyone else denied
+      return false
+    },
+    create: ({ req: { user } }) => {
+      if (!user) return false
+      return isSuperAdmin(user) || user.roles?.includes('Lager') || false
+    },
+    update: ({ req: { user } }) => {
+      if (!user) return false
+      return isSuperAdmin(user) || user.roles?.includes('Lager') || false
+    },
+    delete: ({ req: { user } }) => {
+      if (!user) return false
+      return isSuperAdmin(user) || user.roles?.includes('Lager') || false
+    },
   },
- 
+  hooks: {
+    afterChange: [
+      syncProductQuantity,
+    ],
+  },
   fields: [
     {
       name: 'inventoryId',
       type: 'text',
       required: true,
+      unique: true,
       label: {
         de: 'Lagerbestand-ID',
         en: 'Inventory ID',
@@ -43,37 +78,21 @@ export const Inventory: CollectionConfig = {
       name: 'quantity',
       type: 'number',
       required: true,
+      defaultValue: 0,
+      min: 0,
       label: {
         de: 'Menge',
         en: 'Quantity',
       },
     },
     {
-      name: 'availableQuantity',
-      type: 'number',
+      name: 'warehouse',
+      type: 'relationship',
+      relationTo: 'warehouses',
+      required: true,
       label: {
-        de: 'Verfügbare Menge',
-        en: 'Available Quantity',
-      },
-      admin: {
-        description: {
-          de: 'Menge, die nicht reserviert ist',
-          en: 'Quantity that is not reserved',
-        },
-      },
-    },
-    {
-      name: 'reservedQuantity',
-      type: 'number',
-      label: {
-        de: 'Reservierte Menge',
-        en: 'Reserved Quantity',
-      },
-      admin: {
-        description: {
-          de: 'Menge, die für Bestellungen reserviert ist',
-          en: 'Quantity that is reserved for orders',
-        },
+        de: 'Lager',
+        en: 'Warehouse',
       },
     },
     {
@@ -85,19 +104,10 @@ export const Inventory: CollectionConfig = {
       },
     },
     {
-      name: 'warehouse',
-      type: 'relationship',
-      relationTo: 'warehouses',
-      label: {
-        de: 'Lagerhaus',
-        en: 'Warehouse',
-      },
-    },
-    {
       name: 'section',
       type: 'text',
       label: {
-        de: 'Bereich',
+        de: 'Sektion',
         en: 'Section',
       },
     },
@@ -198,10 +208,16 @@ export const Inventory: CollectionConfig = {
       name: 'notes',
       type: 'textarea',
       label: {
-        de: 'Notizen',
+        de: 'Anmerkungen',
         en: 'Notes',
       },
     },
+    // {
+    //   name: 'tenant',
+    //   type: 'relationship',
+    //   relationTo: 'tenants',
+    //   required: true,
+    // },
   ],
   timestamps: true,
 }
