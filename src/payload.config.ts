@@ -7,7 +7,7 @@ import { buildConfig, PayloadRequest } from 'payload'
 import { fileURLToPath } from 'url'
 import { en } from '@payloadcms/translations/languages/en'
 import { de } from '@payloadcms/translations/languages/de'
-import { multiTenantPlugin } from '@payloadcms/plugin-multi-tenant'
+// import { multiTenantPlugin } from '@payloadcms/plugin-multi-tenant'
 
 import { Categories } from './collections/Categories'
 import { Media } from './collections/Media'
@@ -124,56 +124,12 @@ export default buildConfig({
     Integrations,
     AuditLogs,
     Revenue,
-    ReportingCategories,
-    FinancialManagement, // Neue Collection hinzugefügt
   ],
   cors: [getServerSideURL()].filter(Boolean),
   globals: [Header, Footer],
   plugins: [
     // Re-add the plugins import which contains the redirects plugin
     ...plugins,
-    multiTenantPlugin<Config>({
-      // Using proper format from documentation
-      collections: {
-        // Only define collections that should be multi-tenant
-        tenants: {},
-        users: {},
-        pages: {},
-        posts: {},
-        media: {},
-        categories: {},
-        products: {},
-        suppliers: {},
-        customers: {},
-        orders: {},
-        // inventory: {},
-        purchases: {},
-        invoices: {},
-        payments: {},
-        warehouses: {},
-        // shippingMethods: {},
-        // taxRates: {},
-        reports: {},
-        documents: {},
-        integrations: {},
-        // auditLogs: {},
-        revenue: {},
-        // reportingCategories: {},
-        // financialManagement: {},
-      },
-      // Tenant field access
-      tenantField: {
-        access: {
-          read: () => true, // Allow read access to tenant field
-          update: ({ req }) => isSuperAdmin(req.user) || getUserTenantIDs(req.user).length > 0
-        },
-      },
-      tenantsArrayField: {
-        includeDefaultField: false,
-      },
-      // Function to determine if user has access to all tenants
-      userHasAccessToAllTenants: (user) => isSuperAdmin(user),
-    }),
   ],
   secret: process.env.PAYLOAD_SECRET,
   sharp,

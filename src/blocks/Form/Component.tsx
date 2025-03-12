@@ -15,7 +15,7 @@ export type FormBlockType = {
   blockName?: string
   blockType?: 'formBlock'
   enableIntro: boolean
-  form: FormType
+  form: Omit<FormType, 'buffer'> // Entferne buffer aus dem Typ
   introContent?: SerializedEditorState
 }
 

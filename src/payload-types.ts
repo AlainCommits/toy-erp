@@ -88,8 +88,6 @@ export interface Config {
     integrations: Integration;
     'audit-logs': AuditLog;
     revenue: Revenue;
-    'reporting-categories': ReportingCategory;
-    'financial-management': FinancialManagement;
     redirects: Redirect;
     forms: Form;
     'form-submissions': FormSubmission;
@@ -123,8 +121,6 @@ export interface Config {
     integrations: IntegrationsSelect<false> | IntegrationsSelect<true>;
     'audit-logs': AuditLogsSelect<false> | AuditLogsSelect<true>;
     revenue: RevenueSelect<false> | RevenueSelect<true>;
-    'reporting-categories': ReportingCategoriesSelect<false> | ReportingCategoriesSelect<true>;
-    'financial-management': FinancialManagementSelect<false> | FinancialManagementSelect<true>;
     redirects: RedirectsSelect<false> | RedirectsSelect<true>;
     forms: FormsSelect<false> | FormsSelect<true>;
     'form-submissions': FormSubmissionsSelect<false> | FormSubmissionsSelect<true>;
@@ -206,7 +202,6 @@ export interface Tenant {
  */
 export interface Page {
   id: string;
-  tenant?: (string | null) | Tenant;
   title: string;
   hero: {
     type: 'none' | 'highImpact' | 'mediumImpact' | 'lowImpact';
@@ -251,7 +246,7 @@ export interface Page {
       | null;
     media?: (string | null) | Media;
   };
-  layout: (CallToActionBlock | ContentBlock | MediaBlock | ArchiveBlock | FormBlock | DashboardBlock)[];
+  layout: (CallToActionBlock | ContentBlock | MediaBlock | ArchiveBlock | FormBlock)[];
   meta?: {
     title?: string | null;
     /**
@@ -273,7 +268,6 @@ export interface Page {
  */
 export interface Post {
   id: string;
-  tenant?: (string | null) | Tenant;
   title: string;
   content: {
     root: {
@@ -302,7 +296,6 @@ export interface Post {
  */
 export interface User {
   id: string;
-  tenant?: (string | null) | Tenant;
   roles?:
     | (
         | 'super-admin'
@@ -322,13 +315,6 @@ export interface User {
       )[]
     | null;
   username?: string | null;
-  tenants?:
-    | {
-        tenant: string | Tenant;
-        roles: ('tenant-admin' | 'tenant-viewer')[];
-        id?: string | null;
-      }[]
-    | null;
   updatedAt: string;
   createdAt: string;
   email: string;
@@ -346,7 +332,6 @@ export interface User {
  */
 export interface Media {
   id: string;
-  tenant?: (string | null) | Tenant;
   alt?: string | null;
   caption?: {
     root: {
@@ -581,7 +566,6 @@ export interface ArchiveBlock {
  */
 export interface Category {
   id: string;
-  tenant?: (string | null) | Tenant;
   title: string;
   slug?: string | null;
   slugLock?: boolean | null;
@@ -624,44 +608,10 @@ export interface FormBlock {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "DashboardBlock".
- */
-export interface DashboardBlock {
-  title: string;
-  description?: string | null;
-  layout: 'standard' | 'advanced' | 'finance' | 'sales' | 'inventory';
-  defaultTimeRange?: ('today' | 'week' | 'month' | 'year' | 'all') | null;
-  widgets?:
-    | (
-        | 'revenueOverview'
-        | 'orderStats'
-        | 'inventoryOverview'
-        | 'customerMetrics'
-        | 'revenueChart'
-        | 'revenueByCategoryChart'
-        | 'ordersByStatusChart'
-        | 'inventoryChart'
-        | 'customerChart'
-        | 'recentOrders'
-        | 'lowStockProducts'
-        | 'topCustomers'
-        | 'topProducts'
-        | 'cashFlowForecast'
-        | 'outstandingInvoices'
-        | 'activityLog'
-      )[]
-    | null;
-  id?: string | null;
-  blockName?: string | null;
-  blockType: 'dashboard';
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "products".
  */
 export interface Product {
   id: string;
-  tenant?: (string | null) | Tenant;
   /**
    * Auto-generated article number
    */
@@ -718,7 +668,6 @@ export interface Product {
  */
 export interface Supplier {
   id: string;
-  tenant?: (string | null) | Tenant;
   name: string;
   contactPerson?: string | null;
   email?: string | null;
@@ -764,7 +713,6 @@ export interface Supplier {
  */
 export interface Document {
   id: string;
-  tenant?: (string | null) | Tenant;
   title: string;
   documentType: 'invoice' | 'deliveryNote' | 'order' | 'receipt' | 'contract' | 'taxDocument' | 'report' | 'other';
   description?: string | null;
@@ -825,7 +773,6 @@ export interface Document {
  */
 export interface Order {
   id: string;
-  tenant?: (string | null) | Tenant;
   /**
    * Auto-generated order number
    */
@@ -877,7 +824,6 @@ export interface Order {
  */
 export interface Customer {
   id: string;
-  tenant?: (string | null) | Tenant;
   /**
    * Auto-generated customer number
    */
@@ -954,7 +900,6 @@ export interface ShippingMethod {
  */
 export interface Purchase {
   id: string;
-  tenant?: (string | null) | Tenant;
   purchaseNumber: string;
   orderDate: string;
   expectedDeliveryDate?: string | null;
@@ -999,7 +944,6 @@ export interface Purchase {
  */
 export interface Invoice {
   id: string;
-  tenant?: (string | null) | Tenant;
   invoiceNumber: string;
   invoiceDate: string;
   dueDate: string;
@@ -1080,7 +1024,6 @@ export interface Inventory {
  */
 export interface Warehouse {
   id: string;
-  tenant?: (string | null) | Tenant;
   name: string;
   code: string;
   description?: string | null;
@@ -1120,7 +1063,6 @@ export interface Warehouse {
  */
 export interface Payment {
   id: string;
-  tenant?: (string | null) | Tenant;
   paymentNumber: string;
   paymentDate: string;
   invoice: string | Invoice;
@@ -1149,7 +1091,6 @@ export interface Payment {
  */
 export interface Report {
   id: string;
-  tenant?: (string | null) | Tenant;
   title: string;
   reportType: 'sales' | 'inventory' | 'financial' | 'customer' | 'supplier' | 'custom';
   description?: string | null;
@@ -1197,7 +1138,6 @@ export interface Report {
  */
 export interface Integration {
   id: string;
-  tenant?: (string | null) | Tenant;
   name: string;
   integrationType: 'elster' | 'accounting' | 'payment' | 'shipping' | 'email' | 'crm' | 'marketplace' | 'custom';
   description?: string | null;
@@ -1302,7 +1242,6 @@ export interface AuditLog {
  */
 export interface Revenue {
   id: string;
-  tenant?: (string | null) | Tenant;
   period: string;
   amount: number;
   source: 'online' | 'store' | 'b2b' | 'marketplace' | 'other';
@@ -1313,72 +1252,6 @@ export interface Revenue {
   notes?: string | null;
   relatedOrder?: (string | null) | Order;
   relatedCustomer?: (string | null) | Customer;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "reporting-categories".
- */
-export interface ReportingCategory {
-  id: string;
-  name: string;
-  type: 'revenue' | 'expense' | 'balance';
-  tenant: string | Tenant;
-  description?: string | null;
-  color?: string | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "financial-management".
- */
-export interface FinancialManagement {
-  id: string;
-  name: string;
-  fiscalPeriod: 'monthly' | 'quarterly' | 'yearly';
-  budget?: {
-    /**
-     * Geplantes Budget für den Zeitraum
-     */
-    planned?: number | null;
-    /**
-     * Tatsächliche Ausgaben für den Zeitraum
-     */
-    actual?: number | null;
-    /**
-     * Abweichung (wird automatisch berechnet)
-     */
-    variance?: number | null;
-  };
-  /**
-   * Zugehörige Berichtskategorien
-   */
-  categories?: (string | ReportingCategory)[] | null;
-  /**
-   * Notizen und Anmerkungen zum Finanzmanagement
-   */
-  notes?: {
-    root: {
-      type: string;
-      children: {
-        type: string;
-        version: number;
-        [k: string]: unknown;
-      }[];
-      direction: ('ltr' | 'rtl') | null;
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-      indent: number;
-      version: number;
-    };
-    [k: string]: unknown;
-  } | null;
-  /**
-   * Verknüpfte Finanzdokumente
-   */
-  documents?: (string | Document)[] | null;
-  status: 'draft' | 'in-progress' | 'approved' | 'completed';
   updatedAt: string;
   createdAt: string;
 }
@@ -1816,14 +1689,6 @@ export interface PayloadLockedDocument {
         value: string | Revenue;
       } | null)
     | ({
-        relationTo: 'reporting-categories';
-        value: string | ReportingCategory;
-      } | null)
-    | ({
-        relationTo: 'financial-management';
-        value: string | FinancialManagement;
-      } | null)
-    | ({
         relationTo: 'redirects';
         value: string | Redirect;
       } | null)
@@ -1902,7 +1767,6 @@ export interface TenantsSelect<T extends boolean = true> {
  * via the `definition` "pages_select".
  */
 export interface PagesSelect<T extends boolean = true> {
-  tenant?: T;
   title?: T;
   hero?:
     | T
@@ -1934,7 +1798,6 @@ export interface PagesSelect<T extends boolean = true> {
         mediaBlock?: T | MediaBlockSelect<T>;
         archive?: T | ArchiveBlockSelect<T>;
         formBlock?: T | FormBlockSelect<T>;
-        dashboard?: T | DashboardBlockSelect<T>;
       };
   meta?:
     | T
@@ -2035,23 +1898,9 @@ export interface FormBlockSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "DashboardBlock_select".
- */
-export interface DashboardBlockSelect<T extends boolean = true> {
-  title?: T;
-  description?: T;
-  layout?: T;
-  defaultTimeRange?: T;
-  widgets?: T;
-  id?: T;
-  blockName?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "posts_select".
  */
 export interface PostsSelect<T extends boolean = true> {
-  tenant?: T;
   title?: T;
   content?: T;
   author?: T;
@@ -2065,7 +1914,6 @@ export interface PostsSelect<T extends boolean = true> {
  * via the `definition` "media_select".
  */
 export interface MediaSelect<T extends boolean = true> {
-  tenant?: T;
   alt?: T;
   caption?: T;
   updatedAt?: T;
@@ -2159,7 +2007,6 @@ export interface MediaSelect<T extends boolean = true> {
  * via the `definition` "categories_select".
  */
 export interface CategoriesSelect<T extends boolean = true> {
-  tenant?: T;
   title?: T;
   slug?: T;
   slugLock?: T;
@@ -2180,16 +2027,8 @@ export interface CategoriesSelect<T extends boolean = true> {
  * via the `definition` "users_select".
  */
 export interface UsersSelect<T extends boolean = true> {
-  tenant?: T;
   roles?: T;
   username?: T;
-  tenants?:
-    | T
-    | {
-        tenant?: T;
-        roles?: T;
-        id?: T;
-      };
   updatedAt?: T;
   createdAt?: T;
   email?: T;
@@ -2205,7 +2044,6 @@ export interface UsersSelect<T extends boolean = true> {
  * via the `definition` "products_select".
  */
 export interface ProductsSelect<T extends boolean = true> {
-  tenant?: T;
   sku?: T;
   name?: T;
   description?: T;
@@ -2251,7 +2089,6 @@ export interface ProductsSelect<T extends boolean = true> {
  * via the `definition` "suppliers_select".
  */
 export interface SuppliersSelect<T extends boolean = true> {
-  tenant?: T;
   name?: T;
   contactPerson?: T;
   email?: T;
@@ -2296,7 +2133,6 @@ export interface SuppliersSelect<T extends boolean = true> {
  * via the `definition` "customers_select".
  */
 export interface CustomersSelect<T extends boolean = true> {
-  tenant?: T;
   customerNumber?: T;
   name?: T;
   email?: T;
@@ -2341,7 +2177,6 @@ export interface CustomersSelect<T extends boolean = true> {
  * via the `definition` "orders_select".
  */
 export interface OrdersSelect<T extends boolean = true> {
-  tenant?: T;
   orderNumber?: T;
   orderDate?: T;
   status?: T;
@@ -2411,7 +2246,6 @@ export interface InventorySelect<T extends boolean = true> {
  * via the `definition` "purchases_select".
  */
 export interface PurchasesSelect<T extends boolean = true> {
-  tenant?: T;
   purchaseNumber?: T;
   orderDate?: T;
   expectedDeliveryDate?: T;
@@ -2458,7 +2292,6 @@ export interface PurchasesSelect<T extends boolean = true> {
  * via the `definition` "invoices_select".
  */
 export interface InvoicesSelect<T extends boolean = true> {
-  tenant?: T;
   invoiceNumber?: T;
   invoiceDate?: T;
   dueDate?: T;
@@ -2500,7 +2333,6 @@ export interface InvoicesSelect<T extends boolean = true> {
  * via the `definition` "payments_select".
  */
 export interface PaymentsSelect<T extends boolean = true> {
-  tenant?: T;
   paymentNumber?: T;
   paymentDate?: T;
   invoice?: T;
@@ -2532,7 +2364,6 @@ export interface PaymentsSelect<T extends boolean = true> {
  * via the `definition` "warehouses_select".
  */
 export interface WarehousesSelect<T extends boolean = true> {
-  tenant?: T;
   name?: T;
   code?: T;
   description?: T;
@@ -2626,7 +2457,6 @@ export interface TaxRatesSelect<T extends boolean = true> {
  * via the `definition` "reports_select".
  */
 export interface ReportsSelect<T extends boolean = true> {
-  tenant?: T;
   title?: T;
   reportType?: T;
   description?: T;
@@ -2655,7 +2485,6 @@ export interface ReportsSelect<T extends boolean = true> {
  * via the `definition` "documents_select".
  */
 export interface DocumentsSelect<T extends boolean = true> {
-  tenant?: T;
   title?: T;
   documentType?: T;
   description?: T;
@@ -2687,7 +2516,6 @@ export interface DocumentsSelect<T extends boolean = true> {
  * via the `definition` "integrations_select".
  */
 export interface IntegrationsSelect<T extends boolean = true> {
-  tenant?: T;
   name?: T;
   integrationType?: T;
   description?: T;
@@ -2738,7 +2566,6 @@ export interface AuditLogsSelect<T extends boolean = true> {
  * via the `definition` "revenue_select".
  */
 export interface RevenueSelect<T extends boolean = true> {
-  tenant?: T;
   period?: T;
   amount?: T;
   source?: T;
@@ -2749,40 +2576,6 @@ export interface RevenueSelect<T extends boolean = true> {
   notes?: T;
   relatedOrder?: T;
   relatedCustomer?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "reporting-categories_select".
- */
-export interface ReportingCategoriesSelect<T extends boolean = true> {
-  name?: T;
-  type?: T;
-  tenant?: T;
-  description?: T;
-  color?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "financial-management_select".
- */
-export interface FinancialManagementSelect<T extends boolean = true> {
-  name?: T;
-  fiscalPeriod?: T;
-  budget?:
-    | T
-    | {
-        planned?: T;
-        actual?: T;
-        variance?: T;
-      };
-  categories?: T;
-  notes?: T;
-  documents?: T;
-  status?: T;
   updatedAt?: T;
   createdAt?: T;
 }

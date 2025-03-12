@@ -6,58 +6,30 @@ import { updateAndDeleteAccess } from './access/updateAndDelete'
 import { externalUsersLogin } from './endpoints/externalUsersLogin'
 import { ensureUniqueUsername } from './hooks/ensureUniqueUsername'
 import { isSuperAdmin } from '@/access/isSuperAdmin'
-import { setCookieBasedOnDomain } from './hooks/setCookieBasedOnDomain'
-import { tenantsArrayField } from '@payloadcms/plugin-multi-tenant/fields'
-
-const defaultTenantArrayField = tenantsArrayField({
-  tenantsArrayFieldName: 'tenants',
-  tenantsArrayTenantFieldName: 'tenant', 
-  tenantsCollectionSlug: 'tenants',
-  arrayFieldAccess: {},
-  tenantFieldAccess: {},
-  rowFields: [
-    {
-      name: 'roles',
-      type: 'select',
-      defaultValue: ['tenant-viewer'],
-      hasMany: true,
-      options: ['tenant-admin', 'tenant-viewer'],
-      required: true,
-    },
-  ],
-})
 
 const Users: CollectionConfig = {
   slug: 'users',
   access: {
-    // Explizite Prüfung auf Super-Admin für jeden Zugriff
     create: ({ req }) => {
-      // Super-Admin kann immer erstellen
-      if (isSuperAdmin(req.user)) return true;
-      // Ansonsten normale Zugriffslogik verwenden
-      return createAccess({ req });
+      if (isSuperAdmin(req.user)) return true
+      return createAccess({ req })
     },
     read: ({ req }) => {
-      // Super-Admin kann immer lesen
-      if (isSuperAdmin(req.user)) return true;
-      // Ansonsten normale Zugriffslogik verwenden
-      return readAccess({ req });
+      if (isSuperAdmin(req.user)) return true
+      return readAccess({ req })
     },
     update: ({ req }) => {
-      // Super-Admin kann immer aktualisieren
-      if (isSuperAdmin(req.user)) return true;
-      // Ansonsten normale Zugriffslogik verwenden
-      return updateAndDeleteAccess({ req });
+      if (isSuperAdmin(req.user)) return true
+      return updateAndDeleteAccess({ req })
     },
     delete: ({ req }) => {
-      // Super-Admin kann immer löschen
-      if (isSuperAdmin(req.user)) return true;
-      // Ansonsten normale Zugriffslogik verwenden
-      return updateAndDeleteAccess({ req });
+      if (isSuperAdmin(req.user)) return true
+      return updateAndDeleteAccess({ req })
     },
   },
   admin: {
     useAsTitle: 'email',
+    defaultColumns: ['email', 'username', 'roles'],
   },
   auth: true,
   endpoints: [externalUsersLogin],
@@ -70,11 +42,24 @@ const Users: CollectionConfig = {
       type: 'select',
       defaultValue: ['user'],
       hasMany: true,
-      options: ['super-admin', 'user', 'Lager', 'Finanzen', 'Personal', 'Einkauf', 'Verkauf', 'Produktion', 'Qualität', 'Instandhaltung', 'Logistik', 'Marketing', 'IT', 'Geschäftsführung'],
+      options: [
+        'super-admin',
+        'user',
+        'Lager',
+        'Finanzen',
+        'Personal',
+        'Einkauf',
+        'Verkauf',
+        'Produktion',
+        'Qualität',
+        'Instandhaltung',
+        'Logistik',
+        'Marketing',
+        'IT',
+        'Geschäftsführung'
+      ],
       access: {
-        update: ({ req }) => {
-          return isSuperAdmin(req.user)
-        },
+        update: ({ req }) => isSuperAdmin(req.user),
       },
     },
     {
@@ -86,20 +71,12 @@ const Users: CollectionConfig = {
       index: true,
     },
     {
-      ...defaultTenantArrayField,
-      admin: {
-        ...(defaultTenantArrayField?.admin || {}),
-        position: 'sidebar',
-      },
-    },
+      name: 'email',
+      type: 'email',
+      required: true,
+      unique: true,
+    }
   ],
-  // The following hook sets a cookie based on the domain a user logs in from.
-  // It checks the domain and matches it to a tenant in the system, then sets
-  // a 'payload-tenant' cookie for that tenant.
-
-  hooks: {
-    afterLogin: [setCookieBasedOnDomain],
-  },
 }
 
 export default Users
