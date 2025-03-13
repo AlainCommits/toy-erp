@@ -66,5 +66,14 @@ export const Posts: CollectionConfig = {
       ],
       defaultValue: 'draft',
     },
+    {
+      name: 'relatedPosts',
+      type: 'relationship',
+      relationTo: 'posts',
+      hasMany: true,
+      admin: {
+        position: 'sidebar',
+      },
+    },
   ],
 }

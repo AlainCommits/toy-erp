@@ -288,6 +288,7 @@ export interface Post {
   author: string | User;
   publishedDate?: string | null;
   status?: ('draft' | 'published') | null;
+  relatedPosts?: (string | Post)[] | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -1919,6 +1920,7 @@ export interface PostsSelect<T extends boolean = true> {
   author?: T;
   publishedDate?: T;
   status?: T;
+  relatedPosts?: T;
   updatedAt?: T;
   createdAt?: T;
 }
