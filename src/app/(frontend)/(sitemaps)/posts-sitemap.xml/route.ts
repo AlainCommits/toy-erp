@@ -3,6 +3,12 @@ import { getPayload } from 'payload'
 import config from '@payload-config'
 import { unstable_cache } from 'next/cache'
 
+interface PostDocument {
+  slug: string
+  updatedAt: string
+  id: string
+}
+
 const getPostsSitemap = unstable_cache(
   async () => {
     const payload = await getPayload({ config })
@@ -11,7 +17,7 @@ const getPostsSitemap = unstable_cache(
       process.env.VERCEL_PROJECT_PRODUCTION_URL ||
       'https://example.com'
 
-    const results = await payload.find({
+    const results: { docs: Array<{ slug?: string; updatedAt: string; id: string }> } = await payload.find({
       collection: 'posts',
       overrideAccess: false,
       draft: false,
@@ -33,7 +39,7 @@ const getPostsSitemap = unstable_cache(
 
     const sitemap = results.docs
       ? results.docs
-          .filter((post) => Boolean(post?.slug))
+          .filter((post): post is { slug: string; updatedAt: string; id: string } => Boolean(post?.slug))
           .map((post) => ({
             loc: `${SITE_URL}/posts/${post?.slug}`,
             lastmod: post.updatedAt || dateFallback,
