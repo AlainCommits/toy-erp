@@ -44,6 +44,7 @@ const Users: CollectionConfig = {
       hasMany: true,
       options: [
         'super-admin',
+        'admin',
         'user',
         'Lager',
         'Finanzen',
