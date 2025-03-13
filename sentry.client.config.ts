@@ -10,6 +10,8 @@ Sentry.init({
   // Add optional integrations for additional features
   integrations: [
     Sentry.replayIntegration(),
+    Sentry.browserProfilingIntegration(),
+
   ],
 
   // Define how likely traces are sampled. Adjust this value in production, or use tracesSampler for greater control.
@@ -25,4 +27,7 @@ Sentry.init({
 
   // Setting this option to true will print useful information to the console while you're setting up Sentry.
   debug: false,
+
+  tracePropagationTargets: ["localhost", /^https:\/\/yourserver\.io\/api/],
+
 });

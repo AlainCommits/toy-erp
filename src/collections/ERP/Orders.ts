@@ -6,7 +6,8 @@ import {
   validateOrderItems,
   assignCustomer,
   updateInventory,
-  handleStatusChange
+  handleStatusChange,
+  
 } from './Orders/hooks'
 
 export const Orders: CollectionConfig = {
@@ -432,12 +433,6 @@ export const Orders: CollectionConfig = {
         en: 'Notes',
       },
     },
-    // {
-    //   name: 'tenant',
-    //   type: 'relationship',
-    //   relationTo: 'tenants',
-    //   required: true,
-    // }
   ],
   timestamps: true,
 }

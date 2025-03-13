@@ -1,5 +1,4 @@
 import type { CollectionConfig } from 'payload'
-import { authenticated } from '../../access/authenticated'
 import { isSuperAdmin } from '../../access/isSuperAdmin'
 import { isTenantAdmin } from '../../access/isTenantAdmin'
 
@@ -15,32 +14,42 @@ export const Documents: CollectionConfig = {
     defaultColumns: ['title', 'documentType', 'createdAt', 'createdBy'],
   },
   access: {
-    create: ({ req }) => {
-      // Nur Super-Admins und Tenant-Admins dürfen Seiten erstellen
-      if (isSuperAdmin(req.user) || isTenantAdmin(req.user)) {
-        return true;
-      }
-      return false;
-    },
+    create: () => true, // Allow hooks to create documents
     read: ({ req }) => {
       // Alle authentifizierten Benutzer können lesen, aber du kannst hier die Logik anpassen
-      return req.user ? true : false; // Optional: Nur authentifizierte Benutzer können lesen
+      return req.user ? true : false;
     },
     update: ({ req }) => {
-      // Nur Super-Admins und Tenant-Admins dürfen Seiten aktualisieren
       if (isSuperAdmin(req.user) || isTenantAdmin(req.user)) {
         return true;
       }
       return false;
     },
     delete: ({ req }) => {
-      // Nur Super-Admins dürfen Seiten löschen
       return isSuperAdmin(req.user);
     },
   },
   upload: {
-    staticDir: '../../../uploads/documents',
-    mimeTypes: ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/msword', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/vnd.ms-excel'],
+    staticDir: 'uploads/documents',
+    adminThumbnail: 'thumbnail',
+    mimeTypes: ['application/pdf'],
+    imageSizes: [
+      {
+        name: 'thumbnail',
+        width: 400,
+        height: 300,
+      }
+    ],
+  },
+  hooks: {
+    beforeChange: [
+      ({ req, data }) => {
+        if (req.user) {
+          data.createdBy = req.user.id;
+        }
+        return data;
+      },
+    ],
   },
   fields: [
     {
@@ -146,7 +155,6 @@ export const Documents: CollectionConfig = {
         en: 'Created By',
       },
     },
-    
     {
       name: 'tags',
       type: 'array',
