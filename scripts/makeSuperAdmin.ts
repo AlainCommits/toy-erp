@@ -15,11 +15,16 @@ const makeSuperAdmin = async () => {
     process.exit(1)
   }
 
-  await payload.update({
-    collection: 'users',
-    id: users[0].id,
-    data: { roles: ['super-admin'] },
-  })
+  if (users[0]) {
+    await payload.update({
+      collection: 'users',
+      id: users[0].id,
+      data: { roles: ['super-admin'] },
+    })
+  } else {
+    console.log('❌ Benutzer nicht gefunden.')
+    process.exit(1)
+  }
 
   console.log('✅ Benutzer erfolgreich als Super-Admin gesetzt!')
   process.exit(0)
