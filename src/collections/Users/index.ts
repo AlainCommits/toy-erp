@@ -76,10 +76,32 @@ const Users: CollectionConfig = {
       type: 'email',
       required: true,
       unique: true,
+    },
+    {
+      name: 'firstName',
+      type: 'text',
+      label: {
+        de: 'Vorname',
+        en: 'First Name',
+      },
+    },
+    {
+      name: 'lastName',
+      type: 'text',
+      label: {
+        de: 'Nachname',
+        en: 'Last Name',
+      },
+    },
+    {
+      name: 'phone',
+      type: 'text',
+      label: {
+        de: 'Telefon',
+        en: 'Phone',
+      },
     }
   ],
 }
 
 export default Users
-
-

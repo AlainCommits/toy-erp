@@ -324,6 +324,9 @@ export interface User {
       )[]
     | null;
   username?: string | null;
+  firstName?: string | null;
+  lastName?: string | null;
+  phone?: string | null;
   updatedAt: string;
   createdAt: string;
   email: string;
@@ -2098,6 +2101,9 @@ export interface CategoriesSelect<T extends boolean = true> {
 export interface UsersSelect<T extends boolean = true> {
   roles?: T;
   username?: T;
+  firstName?: T;
+  lastName?: T;
+  phone?: T;
   updatedAt?: T;
   createdAt?: T;
   email?: T;
