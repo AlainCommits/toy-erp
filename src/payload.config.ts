@@ -36,12 +36,8 @@ import { Documents } from './collections/ERP/Documents'
 import { Integrations } from './collections/ERP/Integrations'
 import { AuditLogs } from './collections/ERP/AuditLogs'
 import { Revenue } from './collections/ERP/Revenue'
-import { ReportingCategories } from './collections/ERP/ReportingCategories'
-import { FinancialManagement } from './collections/ERP/FinancialManagement'
-import type { Config } from './payload-types'
 import { Tenants } from './collections/Tenants'
-import { isSuperAdmin } from './access/isSuperAdmin'
-import { getUserTenantIDs } from './utilities/getUserTenantIDs'
+
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
