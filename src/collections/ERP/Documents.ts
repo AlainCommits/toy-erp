@@ -1,6 +1,5 @@
 import type { CollectionConfig } from 'payload'
 import { isSuperAdmin } from '../../access/isSuperAdmin'
-import { isTenantAdmin } from '../../access/isTenantAdmin'
 
 export const Documents: CollectionConfig = {
   slug: 'documents',
@@ -20,7 +19,7 @@ export const Documents: CollectionConfig = {
       return req.user ? true : false;
     },
     update: ({ req }) => {
-      if (isSuperAdmin(req.user) || isTenantAdmin(req.user)) {
+      if (isSuperAdmin(req.user) ) {
         return true;
       }
       return false;
