@@ -18,6 +18,25 @@ export const Posts: CollectionConfig = {
       required: true,
     },
     {
+      name: 'slug',
+      type: 'text',
+      required: true,
+      admin: {
+        position: 'sidebar',
+      },
+      hooks: {
+        beforeValidate: [
+          ({ value, data }) => {
+            if (!value && data?.title) {
+              return data.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')
+            }
+            return value
+          },
+        ],
+      },
+      index: true,
+    },
+    {
       name: 'content',
       type: 'richText',
       required: true,
