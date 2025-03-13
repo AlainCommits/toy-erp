@@ -1,6 +1,7 @@
 import type { CollectionConfig } from 'payload'
 import { isSuperAdmin } from '@/access/isSuperAdmin'
 import { generateCustomerNumber } from './Customers/hooks'
+import { assignOrders } from './Customers/hooks/assignOrders'
 
 export const Customers: CollectionConfig = {
   slug: 'customers',
@@ -51,6 +52,9 @@ export const Customers: CollectionConfig = {
   hooks: {
     beforeChange: [
       generateCustomerNumber,
+    ],
+    afterChange: [
+      assignOrders,
     ],
   },
   fields: [
@@ -339,6 +343,24 @@ export const Customers: CollectionConfig = {
       label: {
         de: 'Anmerkungen',
         en: 'Notes',
+      },
+    },
+    {
+      name: 'orders',
+      type: 'relationship',
+      relationTo: 'orders',
+      hasMany: true,
+      admin: {
+        description: {
+          de: 'Automatisch zugewiesene Bestellungen',
+          en: 'Automatically assigned orders',
+        },
+        position: 'sidebar',
+        readOnly: true,
+      },
+      label: {
+        de: 'Bestellungen',
+        en: 'Orders',
       },
     },
     // {

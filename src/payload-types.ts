@@ -899,6 +899,10 @@ export interface Customer {
     terms?: ('immediate' | 'net14' | 'net30') | null;
   };
   notes?: string | null;
+  /**
+   * Automatically assigned orders
+   */
+  orders?: (string | Order)[] | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -2234,6 +2238,7 @@ export interface CustomersSelect<T extends boolean = true> {
         terms?: T;
       };
   notes?: T;
+  orders?: T;
   updatedAt?: T;
   createdAt?: T;
 }
